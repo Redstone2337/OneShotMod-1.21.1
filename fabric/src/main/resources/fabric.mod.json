@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "nsp",
+  "version": "${version}",
+  "name": "OneShotMod-1.21.1",
+  "description": "[Multiple Loader]A simple one-hit kill module.",
+  "authors": [
+    "Redstone233"
+  ],
+  "contact": {
+    "homepage": ""
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/nsp/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.redstone233.nsp.fabric.OneShotModFabric"
+    ],
+    "client": [
+      "net.redstone233.nsp.fabric.client.OneShotModFabricClient"
+    ]
+  },
+  "mixins": [
+    "nsp.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
