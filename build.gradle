@@ -56,6 +56,40 @@ subprojects {
         it.options.release = 21
     }
 
+    tasks.register('assembleMultiPlatform', Copy) {
+        dependsOn(
+                ':fabric:shadowJar',
+                ':neoforge:shadowJar'
+        )
+
+        // 将构建产物复制到统一的输出目录
+        from project(':fabric').tasks.shadowJar.outputs.files
+        from project(':neoforge').tasks.shadowJar.outputs.files
+        into "${project.rootDir}/build/multi-platform-output/"
+
+        // 润色后的 doLast 闭包
+        doLast {
+            println "🎉 跨平台模组构建完成！"
+            println "=" * 50
+            println "构建产物详情："
+
+            // 详细列出每个生成的JAR文件
+            fileTree(dir: "${project.rootDir}/build/multi-platform-output/").files.each { file ->
+                def fileSize = String.format("%.2f", file.length() / 1024.0 / 1024.0)
+                println "  📦 ${file.name} (${fileSize} MB)"
+            }
+
+            println ""
+            println "📁 输出目录: ${project.rootDir}/build/multi-platform-output/"
+            println "⏰ 构建时间: ${new Date().format('yyyy-MM-dd HH:mm:ss')}"
+            println "=" * 50
+            println "下一步操作："
+            println "  • 将生成的JAR文件放入 Minecraft 的 mods 文件夹进行测试"
+            println "  • 运行游戏验证模组功能是否正常"
+            println "  • 检查控制台日志确认无冲突"
+        }
+    }
+
     // Configure Maven publishing.
     publishing {
         publications {
