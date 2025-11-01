@@ -29,6 +29,9 @@ subprojects {
         // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
         // See https://docs.gradle.org/current/userguide/declaring_repositories.html
         // for more information about repositories.
+        maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
+        maven { url = "https://maven.shedaniel.me/" }
+        maven { url = "https://maven.terraformersmc.com/releases/" }
     }
 
     dependencies {
@@ -65,6 +68,9 @@ subprojects {
             // Notice: This block does NOT have the same function as the block in the top level.
             // The repositories here will be used for publishing your artifact, not for
             // retrieving dependencies.
+            maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
+            maven { url = "https://maven.shedaniel.me/" }
+            maven { url = "https://maven.terraformersmc.com/releases/" }
         }
     }
 }
