@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.config.ClientConfig;
+import net.redstone233.nsp.util.EffectUtil;
 
 import java.util.Objects;
 import java.util.Random;
@@ -115,13 +116,11 @@ public class AttackEventHandler {
         Text messageComponent = Text.literal(message);
 
         if (ClientConfig.shouldBroadcastMessage()) {
-            // 向所有玩家广播消息
             serverPlayer.server.getPlayerManager().broadcast(messageComponent, false);
             if (ClientConfig.isDebugMode()) {
                 OneShotMod.LOGGER.debug("向所有玩家广播一击必杀消息");
             }
         } else {
-            // 只向触发玩家发送消息
             serverPlayer.sendMessage(messageComponent);
             if (ClientConfig.isDebugMode()) {
                 OneShotMod.LOGGER.debug("向玩家 {} 发送一击必杀消息", playerName);
@@ -137,6 +136,12 @@ public class AttackEventHandler {
             }
         }
 
+        // 播放声音效果
+        EffectUtil.playInstakillSound(target);
+
+        // 生成粒子效果
+        EffectUtil.spawnInstakillParticles(target);
+
         // 杀死实体
         if (target instanceof LivingEntity livingEntity) {
             livingEntity.kill();
@@ -144,17 +149,6 @@ public class AttackEventHandler {
             if (ClientConfig.isDebugMode()) {
                 OneShotMod.LOGGER.info("一击必杀触发: 玩家 {} 杀死了 {}", playerName, entityName);
             }
-        }
-
-        // 基础的粒子效果
-        spawnBasicParticles(target);
-    }
-
-    private static void spawnBasicParticles(Entity target) {
-        // 基础的爆炸粒子效果
-        // 在实际实现中，这里会调用粒子效果生成代码
-        if (ClientConfig.isDebugMode()) {
-            OneShotMod.LOGGER.debug("生成基础粒子效果 for {}", Objects.requireNonNull(target.getDisplayName()).getString());
         }
     }
 }
