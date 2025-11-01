@@ -2,6 +2,8 @@ package net.redstone233.nsp.config;
 
 import net.redstone233.nsp.OneShotMod;
 
+import java.util.List;
+
 public class ClientConfig {
     // 配置值将通过平台特定实现获取
     private static ConfigProvider configProvider;
@@ -93,7 +95,7 @@ public class ClientConfig {
         boolean requiresEmptyHand();
         boolean affectsPlayers();
         boolean affectsBosses();
-        java.util.List<? extends String> getBlacklistedEntities();
+        List<? extends String> getBlacklistedEntities();
         boolean shouldBroadcastMessage();
         boolean shouldShowInActionbar();
         boolean isDebugMode();
