@@ -8,7 +8,8 @@
     "Redstone233"
   ],
   "contact": {
-    "homepage": ""
+    "homepage": "https://redstone2337-web.netlify.app/",
+    "sources": "https://github.com/Redstone2337/OneShotMod-1.21.1"
   },
   "license": "GPL-3.0",
   "icon": "assets/nsp/icon.png",
@@ -19,6 +20,9 @@
     ],
     "client": [
       "net.redstone233.nsp.fabric.client.OneShotModFabricClient"
+    ],
+    "fabric-datagen": [
+      "net.redstone233.nsp.fabric.client.OneShotModFabricClientDataGenerator"
     ]
   },
   "mixins": [
