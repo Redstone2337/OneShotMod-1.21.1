@@ -5,7 +5,7 @@ plugins {
 }
 
 architectury {
-    minecraft = project.minecraft_version
+    minecraft = rootProject.minecraft_version
 }
 
 allprojects {
@@ -79,36 +79,87 @@ subprojects {
     }
 }
 
-tasks.register('assembleMultiPlatform', Copy) {
+// 聚合任务 - 将common、fabric和neoforge模块打包成一个JAR
+tasks.register('aggregateJar', Jar) {
+    archiveBaseName.set("${rootProject.archives_name}")
+    archiveClassifier.set('aggregated')
+    archiveVersion.set("${rootProject.mod_version}")
+
+    // 1. 包含Common模块的输出
+    from(project(':common').sourceSets.main.output)
+
+    // 2. 包含Fabric模块的输出
+    from(project(':fabric').sourceSets.main.output) {
+        // 排除Fabric平台特定的实现类，避免重复
+        exclude 'net/redstone233/nsp/fabric/**'
+    }
+    // 显式包含Fabric平台特定的实现类
+    from(project(':fabric').sourceSets.main.output) {
+        include 'net/redstone233/nsp/fabric/**'
+    }
+
+    // 3. 包含NeoForge模块的输出
+    from(project(':neoforge').sourceSets.main.output) {
+        // 排除NeoForge平台特定的实现类
+        exclude 'net/redstone233/nsp/neoforge/**'
+    }
+    // 显式包含NeoForge平台特定的实现类
+    from(project(':neoforge').sourceSets.main.output) {
+        include 'net/redstone233/nsp/neoforge/**'
+    }
+
+    // 4. 包含各模块的资源文件
+    from(project(':common').sourceSets.main.resources.srcDirs)
+    from(project(':fabric').sourceSets.main.resources.srcDirs)
+    from(project(':neoforge').sourceSets.main.resources.srcDirs)
+
+    // 5. 处理重复文件（平台特定的配置文件）
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'fabric.mod.json', 'META-INF/mods.toml'
+
+    // 6. 确保在子项目构建完成后执行
     dependsOn(
-            ':fabric:shadowJar',
-            ':neoforge:shadowJar'
+            project(':common').tasks.named('build'),
+            project(':fabric').tasks.named('build'),
+            project(':neoforge').tasks.named('build')
     )
 
-    // 将构建产物复制到统一的输出目录
-    from project(':fabric').tasks.shadowJar.outputs.files
-    from project(':neoforge').tasks.shadowJar.outputs.files
-    into "${project.rootDir}/build/multi-platform-output/"
-
-    // 润色后的 doLast 闭包
-    doLast {
-        println "🎉 跨平台模组构建完成！"
-        println "=" * 50
-        println "构建产物详情："
-
-        // 详细列出每个生成的JAR文件
-        fileTree(dir: "${project.rootDir}/build/multi-platform-output/").files.each { file ->
-            def fileSize = String.format("%.2f", file.length() / 1024.0 / 1024.0)
-            println "  📦 ${file.name} (${fileSize} MB)"
-        }
-
-        println ""
-        println "📁 输出目录: ${project.rootDir}/build/multi-platform-output/"
-        println "⏰ 构建时间: ${new Date().format('yyyy-MM-dd HH:mm:ss')}"
-        println "=" * 50
-        println "下一步操作："
-        println "  • 将生成的JAR文件放入 Minecraft 的 mods 文件夹进行测试"
-        println "  • 运行游戏验证模组功能是否正常"
-        println "  • 检查控制台日志确认无冲突"
+    doFirst {
+        println "🎯 开始构建聚合JAR任务..."
+        println "📦 项目信息: ${rootProject.archives_name}-v${rootProject.mod_version}"
+        println "🔧 包含模块:"
+        println "   • 🟦 Common模块 (核心逻辑)"
+        println "   • 🟪 Fabric模块 (Fabric平台实现)"
+        println "   • 🟩 NeoForge模块 (NeoForge平台实现)"
+        println "📁 输出文件: ${archiveBaseName.get()}-${archiveVersion.get()}-${archiveClassifier.get()}.jar"
+        println "⚡ 处理策略:"
+        println "   • 🔄 排除重复文件策略: ${duplicatesStrategy}"
+        println "   • 🚫 排除的文件: fabric.mod.json, META-INF/mods.toml"
+        println "   • 🎯 平台特定代码: 分别包含 Fabric/NeoForge 的实现类"
+        println "⏳ 正在聚合各模块的类和资源文件..."
     }
+
+    def dots = 0
+    def progressTimer = new Timer()
+    progressTimer.scheduleAtFixedRate({
+        print "\r📦 聚合中" + "." * (dots % 4) + "   "
+        dots++
+    }, 0, 500)
+
+    doLast {
+        progressTimer.cancel()
+        if (archiveFile.isPresent()) {
+            println "✅ 聚合JAR构建完成!"
+            println "📂 输出位置: ${archiveFile.get().asFile.absolutePath}"
+            println "💡 提示: 将此JAR文件放入 Minecraft 的 mods 文件夹中进行测试"
+        } else {
+            println "❌ 构建完成但无法确定输出文件"
+        }
+    }
+}
+
+// 可选：创建一个任务组，方便在IDE中查看
+tasks.named('aggregateJar') {
+    group = 'build'
+    description = '将common、fabric和neoforge模块聚合到一个JAR文件中'
 }
