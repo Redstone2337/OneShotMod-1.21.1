@@ -10,7 +10,7 @@ public class ModKeys {
     public static KeyBinding OPEN_CONFIG_KEY = new KeyBinding(
             "key.nsp.open_config_key",
             InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_O,
+            GLFW.GLFW_KEY_LEFT_BRACKET,
             "category.nsp"
     );
 
