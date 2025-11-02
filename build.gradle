@@ -77,89 +77,138 @@ subprojects {
             maven { url = "https://maven.terraformersmc.com/releases/" }
         }
     }
-}
 
-// 聚合任务 - 将common、fabric和neoforge模块打包成一个JAR
-tasks.register('aggregateJar', Jar) {
-    archiveBaseName.set("${rootProject.archives_name}")
-    archiveClassifier.set('aggregated')
-    archiveVersion.set("${rootProject.mod_version}")
 
-    // 1. 包含Common模块的输出
-    from(project(':common').sourceSets.main.output)
 
-    // 2. 包含Fabric模块的输出
-    from(project(':fabric').sourceSets.main.output) {
-        // 排除Fabric平台特定的实现类，避免重复
-        exclude 'net/redstone233/nsp/fabric/**'
-    }
-    // 显式包含Fabric平台特定的实现类
-    from(project(':fabric').sourceSets.main.output) {
-        include 'net/redstone233/nsp/fabric/**'
-    }
+    tasks.register('aggregateJar', Jar) {
+        archiveBaseName.set(rootProject.archives_name)
+        archiveVersion.set(rootProject.mod_version)
+        archiveClassifier.set('aggregated')
+        archiveExtension.set('jar')
 
-    // 3. 包含NeoForge模块的输出
-    from(project(':neoforge').sourceSets.main.output) {
-        // 排除NeoForge平台特定的实现类
-        exclude 'net/redstone233/nsp/neoforge/**'
-    }
-    // 显式包含NeoForge平台特定的实现类
-    from(project(':neoforge').sourceSets.main.output) {
-        include 'net/redstone233/nsp/neoforge/**'
-    }
+        // 包含Common模块的输出
+        from(project(':common').sourceSets.main.output)
 
-    // 4. 包含各模块的资源文件
-    from(project(':common').sourceSets.main.resources.srcDirs)
-    from(project(':fabric').sourceSets.main.resources.srcDirs)
-    from(project(':neoforge').sourceSets.main.resources.srcDirs)
+        // 包含Fabric模块的输出
+        from(project(':fabric').sourceSets.main.output) {
+            exclude 'net/redstone233/nsp/fabric/**'
+        }
+        from(project(':fabric').sourceSets.main.output) {
+            include 'net/redstone233/nsp/fabric/**'
+        }
 
-    // 5. 处理重复文件（平台特定的配置文件）
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude 'fabric.mod.json', 'META-INF/mods.toml'
+        // 包含NeoForge模块的输出
+        from(project(':neoforge').sourceSets.main.output) {
+            exclude 'net/redstone233/nsp/neoforge/**'
+        }
+        from(project(':neoforge').sourceSets.main.output) {
+            include 'net/redstone233/nsp/neoforge/**'
+        }
 
-    // 6. 确保在子项目构建完成后执行
-    dependsOn(
-            project(':common').tasks.named('build'),
-            project(':fabric').tasks.named('build'),
-            project(':neoforge').tasks.named('build')
-    )
+        // 包含各模块的资源文件
+        from(project(':common').sourceSets.main.resources.srcDirs)
+        from(project(':fabric').sourceSets.main.resources.srcDirs)
+        from(project(':neoforge').sourceSets.main.resources.srcDirs)
 
-    doFirst {
-        println "🎯 开始构建聚合JAR任务..."
-        println "📦 项目信息: ${rootProject.archives_name}-v${rootProject.mod_version}"
-        println "🔧 包含模块:"
-        println "   • 🟦 Common模块 (核心逻辑)"
-        println "   • 🟪 Fabric模块 (Fabric平台实现)"
-        println "   • 🟩 NeoForge模块 (NeoForge平台实现)"
-        println "📁 输出文件: ${archiveBaseName.get()}-${archiveVersion.get()}-${archiveClassifier.get()}.jar"
-        println "⚡ 处理策略:"
-        println "   • 🔄 排除重复文件策略: ${duplicatesStrategy}"
-        println "   • 🚫 排除的文件: fabric.mod.json, META-INF/mods.toml"
-        println "   • 🎯 平台特定代码: 分别包含 Fabric/NeoForge 的实现类"
-        println "⏳ 正在聚合各模块的类和资源文件..."
-    }
+        // 处理重复文件
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        exclude 'fabric.mod.json', 'META-INF/mods.toml'
 
-    def dots = 0
-    def progressTimer = new Timer()
-    progressTimer.scheduleAtFixedRate({
-        print "\r📦 聚合中" + "." * (dots % 4) + "   "
-        dots++
-    }, 0, 500)
+        // 依赖关系
+        dependsOn(
+                project(':common').tasks.named('build'),
+                project(':fabric').tasks.named('build'),
+                project(':neoforge').tasks.named('build')
+        )
 
-    doLast {
-        progressTimer.cancel()
-        if (archiveFile.isPresent()) {
+        doFirst {
+            // 记录开始时间
+            def startTime = System.currentTimeMillis()
+            println "⏰ 构建开始时间: ${new Date(startTime).format('HH:mm:ss')}"
+            println "🎯 开始构建聚合JAR..."
+            println "📦 项目: ${archiveBaseName.get()}-v${archiveVersion.get()}"
+            println "🔧 模块: 🟦Common + 🟪Fabric + 🟩NeoForge"
+            println ""
+
+            // 创建进度变量
+            def progressSteps = [
+                    "🔄 准备构建环境...",
+                    "📥 收集Common模块文件...",
+                    "📥 收集Fabric模块文件...",
+                    "📥 收集NeoForge模块文件...",
+                    "📁 合并资源文件...",
+                    "🔧 处理重复文件...",
+                    "📦 打包JAR文件..."
+            ]
+
+            // 进度指示器
+            progressSteps.eachWithIndex { step, index ->
+                println "[${index + 1}/${progressSteps.size()}] $step"
+                // 模拟处理时间，实际构建中不需要这个sleep
+                if (project.hasProperty('debugProgress')) {
+                    Thread.sleep(200)
+                }
+            }
+            println ""
+
+            // 存储开始时间到扩展属性中
+            ext.startTime = startTime
+        }
+
+        doLast {
+            def endTime = System.currentTimeMillis()
+            def startTime = ext.startTime
+            def duration = endTime - startTime
+
+            // 格式化持续时间
+            def formattedDuration
+            if (duration < 1000) {
+                formattedDuration = "${duration}ms"
+            } else if (duration < 60000) {
+                formattedDuration = String.format("%.2fs", duration / 1000.0)
+            } else {
+                def minutes = duration / 60000
+                def seconds = (duration % 60000) / 1000.0
+                formattedDuration = String.format("%dm %.2fs", minutes, seconds)
+            }
+
+            println ""
             println "✅ 聚合JAR构建完成!"
-            println "📂 输出位置: ${archiveFile.get().asFile.absolutePath}"
+            println "⏱️  构建耗时: $formattedDuration"
+            println "⏰ 完成时间: ${new Date(endTime).format('HH:mm:ss')}"
+
+            if (archiveFile.isPresent()) {
+                println "📂 输出位置: ${archiveFile.get().asFile.absolutePath}"
+
+                // 显示文件大小
+                def file = archiveFile.get().asFile
+                def fileSize = file.length()
+                def formattedSize
+                if (fileSize < 1024) {
+                    formattedSize = "${fileSize} B"
+                } else if (fileSize < 1024 * 1024) {
+                    formattedSize = String.format("%.2f KB", fileSize / 1024.0)
+                } else {
+                    formattedSize = String.format("%.2f MB", fileSize / (1024.0 * 1024.0))
+                }
+                println "📊 文件大小: $formattedSize"
+            } else {
+                println "⚠️  无法确定最终输出路径，但任务应已完成。"
+            }
+
             println "💡 提示: 将此JAR文件放入 Minecraft 的 mods 文件夹中进行测试"
-        } else {
-            println "❌ 构建完成但无法确定输出文件"
+
+            // 构建完成庆祝表情
+            println ""
+            println "🎉 构建成功! 快去测试你的模组吧! 🎉"
         }
     }
+
+    // 可选：创建一个任务组，方便在IDE中查看
+    tasks.named('aggregateJar') {
+        group = 'build'
+        description = '将common、fabric和neoforge模块聚合到一个JAR文件中'
+    }
 }
 
-// 可选：创建一个任务组，方便在IDE中查看
-tasks.named('aggregateJar') {
-    group = 'build'
-    description = '将common、fabric和neoforge模块聚合到一个JAR文件中'
-}
+
