@@ -1,12 +1,14 @@
 package net.redstone233.nsp.neoforge.config;
 
 
+import net.minecraft.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.*;
+import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.config.ClientConfig;
 import net.redstone233.nsp.neoforge.OneShotModNeoForge;
 
@@ -32,6 +34,10 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         DEBUG_MODE = BUILDER
                 .comment("启用调试模式，在控制台输出详细信息")
                 .define("debugMode", false);
+
+        MAX_ITEM_STACK_COUNT = BUILDER
+                .comment("最大物品堆叠数量")
+                .defineInRange("customMaxItemStackCount", Item.DEFAULT_MAX_COUNT, 1, OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT);
 
         BUILDER.pop();
     }
@@ -104,6 +110,7 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
     public static ConfigValue<String> MESSAGE_FORMAT;
     public static BooleanValue BROADCAST_MESSAGE;
     public static BooleanValue SHOW_IN_ACTIONBAR;
+    public static IntValue MAX_ITEM_STACK_COUNT;
 
     static {
         // 按顺序初始化各个配置节
@@ -166,6 +173,11 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         return MESSAGE_FORMAT.get().replace("%player%", playerName).replace("%entity%", entityName);
     }
 
+    @Override
+    public int getMaxItemStackCount() {
+        return MAX_ITEM_STACK_COUNT.get();
+    }
+
     // ==================== 配置管理方法 ====================
 
     public static List<String> getEntityBlacklist() {
@@ -224,14 +236,15 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
      */
     public static String getConfigSummary() {
         return String.format(
-                "一击必杀配置: 启用=%s, 概率=%d%%, 空手=%s, 影响玩家=%s, 影响Boss=%s, 广播=%s, 动作栏=%s",
+                "一击必杀配置: 启用=%s, 概率=%d%%, 空手=%s, 影响玩家=%s, 影响Boss=%s, 广播=%s, 动作栏=%s, 最大堆叠=%s",
                 ENABLED.get(),
                 CHANCE.get(),
                 REQUIRE_EMPTY_HAND.get(),
                 AFFECT_PLAYERS.get(),
                 AFFECT_BOSSES.get(),
                 BROADCAST_MESSAGE.get(),
-                SHOW_IN_ACTIONBAR.get()
+                SHOW_IN_ACTIONBAR.get(),
+                MAX_ITEM_STACK_COUNT.get()
         );
     }
 
@@ -277,6 +290,10 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         SHOW_IN_ACTIONBAR.set(value);
     }
 
+    public static void setMaxItemStackCount(int value) {
+        MAX_ITEM_STACK_COUNT.set(value);
+    }
+
     // ==================== 配置初始化和事件处理 ====================
 
     // 验证方法
@@ -314,6 +331,11 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
             OneShotModNeoForge.LOGGER.warn("消息格式缺少必要的占位符 %player% 或 %entity%");
         }
 
+        String s = "堆叠数量超出范围（0-" + OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT + "），当前值: " + MAX_ITEM_STACK_COUNT.get();
+        if (MAX_ITEM_STACK_COUNT.get() < 1 || MAX_ITEM_STACK_COUNT.get() > OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT) {
+            OneShotMod.LOGGER.error(s);
+        }
+
         OneShotModNeoForge.LOGGER.info("配置验证完成: {}", getConfigSummary());
     }
 
@@ -336,6 +358,7 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         setMessageFormat("§6[§e%player%§6] §a触发一击必杀，已抹除 §c[§4%entity%§c]");
         setBroadcastMessage(true);
         setShowInActionbar(false);
+        setMaxItemStackCount(Item.DEFAULT_MAX_COUNT);
 
         OneShotModNeoForge.LOGGER.info("一击必杀配置已重置为默认值 (NeoForge)");
     }

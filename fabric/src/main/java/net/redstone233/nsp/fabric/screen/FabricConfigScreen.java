@@ -4,7 +4,9 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.item.Item;
 import net.minecraft.text.Text;
+import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.fabric.config.FabricConfigImpl;
 
 import java.util.Arrays;
@@ -35,6 +37,12 @@ public class FabricConfigScreen {
                 .setDefaultValue(false)
                 .setTooltip(Text.literal("启用调试模式，在控制台输出详细信息"))
                 .setSaveConsumer(FabricConfigImpl.DEBUG_MODE::set)
+                .build());
+
+        features.addEntry(entryBuilder.startIntSlider(Text.literal("堆叠数量"), FabricConfigImpl.MAX_ITEM_STACK_COUNT.get(), 1, OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)
+                .setDefaultValue(Item.DEFAULT_MAX_COUNT)
+                .setTooltip(Text.literal("最大物品堆叠数量 (1-").append(Text.literal(String.valueOf(OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)).append(")")))
+                .setSaveConsumer(FabricConfigImpl.MAX_ITEM_STACK_COUNT::set)
                 .build());
 
         // ==================== 触发条件分类 ====================

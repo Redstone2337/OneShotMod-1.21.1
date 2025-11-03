@@ -6,6 +6,8 @@
   "client": [
   ],
   "mixins": [
+    "CustomMaxItemStackCountMixin",
+    "ItemMaxCountAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,5 +1,6 @@
 package net.redstone233.nsp.config;
 
+import net.minecraft.item.Item;
 import net.redstone233.nsp.OneShotMod;
 
 import java.util.List;
@@ -59,6 +60,10 @@ public class ClientConfig {
         return configProvider.getMessage(playerName, entityName);
     }
 
+    public static int getMaxItemStackCount() {
+        return configProvider != null ? configProvider.getMaxItemStackCount() : Item.MAX_MAX_COUNT;
+    }
+
     /**
      * 验证配置的完整性
      */
@@ -100,5 +105,6 @@ public class ClientConfig {
         boolean shouldShowInActionbar();
         boolean isDebugMode();
         String getMessage(String playerName, String entityName);
+        int getMaxItemStackCount();
     }
 }
