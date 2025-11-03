@@ -1,4 +1,3 @@
-// common/src/main/java/net/redstone233/nsp/mixin/ItemAccessor.java
 package net.redstone233.nsp.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;

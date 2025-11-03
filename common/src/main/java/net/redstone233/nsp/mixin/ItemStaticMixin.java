@@ -1,4 +1,3 @@
-// common/src/main/java/net/redstone233/nsp/mixin/ItemStaticMixin.java
 package net.redstone233.nsp.mixin;
 
 import net.minecraft.item.Item;
