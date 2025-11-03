@@ -1,0 +1,6 @@
+{
+  "accessWidener": "nsp.accesswidener",
+  "mixins": [
+        "nsp.mixins.json"
+  ]
+}
