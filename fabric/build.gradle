@@ -1,5 +1,4 @@
 plugins {
-    id 'fabric-loom' version "1.11-SNAPSHOT"
     id 'com.github.johnrengelman.shadow'
 }
 
