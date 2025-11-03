@@ -1,6 +1,7 @@
 package net.redstone233.nsp.mixin;
 
 import net.minecraft.item.Item;
+import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.config.ClientConfig;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,9 +25,9 @@ public class ItemStaticMixin {
         try {
             // 直接修改静态字段
             MAX_MAX_COUNT = ClientConfig.getMaxItemStackCount();
-            System.out.println("Static mixin initialized MAX_MAX_COUNT to: " + MAX_MAX_COUNT);
+            OneShotMod.LOGGER.info("Static mixin initialized MAX_MAX_COUNT to: {}", MAX_MAX_COUNT);
         } catch (Exception e) {
-            System.err.println("Failed to initialize MAX_MAX_COUNT in static mixin: " + e.getMessage());
+            OneShotMod.LOGGER.error("Failed to initialize MAX_MAX_COUNT in static mixin: {}", e.getMessage());
         }
     }
 }
