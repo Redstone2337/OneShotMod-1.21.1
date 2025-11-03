@@ -7,8 +7,7 @@
   ],
   "mixins": [
     "CustomMaxItemStackCountMixin",
-    "ItemAccessor",
-    "ItemStaticMixin"
+    "ItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1
