@@ -14,10 +14,11 @@ public class ItemMixin {
     @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
     private void overrideGetMaxCount(CallbackInfoReturnable<Integer> cir) {
         int customMaxCount = StackSystemManager.getCurrentStackCount();
-        if (customMaxCount < 1 || customMaxCount > OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT) {
-            cir.setReturnValue(Item.DEFAULT_MAX_COUNT);
-        } else {
+
+        // 确保数值在有效范围内
+        if (customMaxCount >= 1 && customMaxCount <= OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT) {
             cir.setReturnValue(customMaxCount);
         }
+        // 如果数值无效，保持原样（不设置返回值，让原方法继续执行）
     }
 }

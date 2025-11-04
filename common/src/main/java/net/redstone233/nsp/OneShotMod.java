@@ -17,5 +17,11 @@ public final class OneShotMod {
         LOGGER.info("Mod {} initialized", MOD_ID);
         StackCommand.register();
         StackSystemManager.initialize();
+
+        if (StackSystemManager.isUsingConfigSystem()) {
+            LOGGER.info("堆叠系统已集成到主配置系统中");
+        } else {
+            LOGGER.info("堆叠系统使用独立配置文件");
+        }
     }
 }

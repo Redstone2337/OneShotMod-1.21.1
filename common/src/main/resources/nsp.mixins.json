@@ -6,7 +6,6 @@
   "client": [
   ],
   "mixins": [
-    "CustomMaxItemStackCountMixin",
     "ItemAccessor",
     "ItemMixin"
   ],

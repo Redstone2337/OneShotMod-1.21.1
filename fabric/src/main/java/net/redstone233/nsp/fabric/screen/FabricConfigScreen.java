@@ -1,4 +1,3 @@
-// FabricConfigScreen.java - 在 fabric 模块中
 package net.redstone233.nsp.fabric.screen;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -22,7 +21,16 @@ public class FabricConfigScreen {
                 .setSavingRunnable(() -> {
                     // 保存配置时调用 StackSystemManager 确保同步
                     FabricConfigImpl.saveConfig();
-                    OneShotMod.LOGGER.info("配置屏幕保存完成");
+
+                    // 立即同步堆叠系统
+                    int newStackCount = FabricConfigImpl.MAX_ITEM_STACK_COUNT.get();
+                    boolean syncSuccess = StackSystemManager.modifyStackSystem(newStackCount);
+
+                    if (syncSuccess) {
+                        OneShotMod.LOGGER.info("配置屏幕保存完成，堆叠大小已同步: {}", newStackCount);
+                    } else {
+                        OneShotMod.LOGGER.error("配置屏幕保存完成，但堆叠大小同步失败");
+                    }
                 });
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
@@ -42,14 +50,23 @@ public class FabricConfigScreen {
                 .setSaveConsumer(FabricConfigImpl.DEBUG_MODE::set)
                 .build());
 
-        features.addEntry(entryBuilder.startIntSlider(Text.literal("堆叠数量"), FabricConfigImpl.MAX_ITEM_STACK_COUNT.get(), 1, OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)
+        // ==================== 堆叠系统分类 ====================
+        ConfigCategory stacking = builder.getOrCreateCategory(Text.literal("堆叠系统"));
+
+        stacking.addEntry(entryBuilder.startIntSlider(Text.literal("物品堆叠数量"), FabricConfigImpl.MAX_ITEM_STACK_COUNT.get(), 1, OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)
                 .setDefaultValue(Item.DEFAULT_MAX_COUNT)
-                .setTooltip(Text.literal("最大物品堆叠数量 (1-").append(Text.literal(String.valueOf(OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)).append(")")))
+                .setTooltip(Text.literal("设置所有物品的最大堆叠数量\n当前值: " + FabricConfigImpl.MAX_ITEM_STACK_COUNT.get() + "\n范围: 1-" + OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT))
                 .setSaveConsumer(newValue -> {
-                    // 关键修改：当堆叠数量改变时，调用 StackSystemManager 确保同步
                     FabricConfigImpl.MAX_ITEM_STACK_COUNT.set(newValue);
-                    StackSystemManager.onConfigScreenUpdate(newValue);
+                    // 立即应用更改
+                    StackSystemManager.modifyStackSystem(newValue);
                 })
+                .build());
+
+        stacking.addEntry(entryBuilder.startTextDescription(Text.literal("§e堆叠系统状态: §a" + getStackSystemStatus()))
+                .build());
+
+        stacking.addEntry(entryBuilder.startTextDescription(Text.literal("§7修改后立即生效，无需重启游戏"))
                 .build());
 
         // ==================== 触发条件分类 ====================
@@ -110,12 +127,49 @@ public class FabricConfigScreen {
         // ==================== 系统状态分类 ====================
         ConfigCategory system = builder.getOrCreateCategory(Text.literal("系统状态"));
 
-        system.addEntry(entryBuilder.startTextDescription(Text.literal(StackSystemManager.getSystemStatus()))
+        system.addEntry(entryBuilder.startTextDescription(Text.literal(getFullSystemStatus()))
                 .build());
 
-        system.addEntry(entryBuilder.startTextDescription(Text.literal("使用 /stack info 命令查看详细系统信息"))
+        system.addEntry(entryBuilder.startTextDescription(Text.literal("§7使用 §e/stack info §7命令查看详细系统信息"))
+                .build());
+
+        system.addEntry(entryBuilder.startTextDescription(Text.literal("§7使用 §e/stack sync-config §7命令手动同步配置"))
                 .build());
 
         return builder.build();
+    }
+
+    /**
+     * 获取堆叠系统状态信息
+     */
+    private static String getStackSystemStatus() {
+        try {
+            int currentCount = StackSystemManager.getCurrentStackCount();
+            boolean usingConfig = StackSystemManager.isUsingConfigSystem();
+            String source = usingConfig ? "配置系统" : "独立配置";
+
+            return String.format("当前: %d (来源: %s)", currentCount, source);
+        } catch (Exception e) {
+            return "状态获取失败";
+        }
+    }
+
+    /**
+     * 获取完整系统状态信息
+     */
+    private static String getFullSystemStatus() {
+
+        return "§6=== 系统状态 ===\n" +
+
+                // 堆叠系统状态
+                "§a堆叠系统: §e" + getStackSystemStatus() + "\n" +
+
+                // 一击必杀状态
+                "§a一击必杀: §e" +
+                (FabricConfigImpl.ENABLED.get() ? "已启用" : "已禁用") +
+                " (概率: " + FabricConfigImpl.CHANCE.get() + "%)\n" +
+
+                // 配置状态
+                "§a配置状态: §e" + (FabricConfigImpl.validateConfiguration() ? "正常" : "异常");
     }
 }

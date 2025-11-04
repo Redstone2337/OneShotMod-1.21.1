@@ -363,11 +363,13 @@ public class FabricConfigImpl implements ClientConfig.ConfigProvider {
 
     private static void onConfigReload(ModConfig modConfig) {
         validateConfig();
-        OneShotMod.LOGGER.info("一击必杀模组配置已重新加载");
+        ClientConfig.onConfigReload();
+        OneShotMod.LOGGER.info("一击必杀模组配置重载成功");
     }
 
     private static void onConfigLoad(ModConfig modConfig) {
         validateConfig();
+        ClientConfig.onConfigReload();
         // 配置重载时同步堆叠系统
         int stackCount = MAX_ITEM_STACK_COUNT.get();
         if (stackCount > 99) {
@@ -379,7 +381,7 @@ public class FabricConfigImpl implements ClientConfig.ConfigProvider {
             }
         }
 
-        OneShotMod.LOGGER.info("一击必杀模组配置已重新加载");
+        OneShotMod.LOGGER.info("一击必杀模组配置已加载");
     }
 
     // 配置加载事件处理

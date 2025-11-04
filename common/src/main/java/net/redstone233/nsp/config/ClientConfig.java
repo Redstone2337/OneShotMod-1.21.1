@@ -3,6 +3,7 @@ package net.redstone233.nsp.config;
 import net.minecraft.item.Item;
 import net.redstone233.nsp.OneShotMod;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class ClientConfig {
@@ -96,6 +97,39 @@ public class ClientConfig {
             OneShotMod.LOGGER.error("配置验证失败", e);
             return false;
         }
+    }
+
+    /**
+     * 配置重载时的回调
+     */
+    public static void onConfigReload() {
+        OneShotMod.LOGGER.info("ClientConfig 配置已重新加载");
+
+        // 通知堆叠系统配置已更新
+        try {
+            Class<?> stackSystemManager = Class.forName("net.redstone233.nsp.util.StackSystemManager");
+            Method reloadMethod = stackSystemManager.getMethod("onConfigReloaded");
+            reloadMethod.invoke(null);
+        } catch (Exception e) {
+            OneShotMod.LOGGER.warn("无法通知堆叠系统配置重载: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 获取配置摘要（包含堆叠信息）
+     */
+    public static String getFullConfigSummary() {
+
+        return "=== 一击必杀配置 ===\n" +
+                "启用: " + isEnabled() + "\n" +
+                "概率: " + getChance() + "%\n" +
+                "空手触发: " + requiresEmptyHand() + "\n" +
+                "影响玩家: " + affectsPlayers() + "\n" +
+                "影响Boss: " + affectsBosses() + "\n" +
+                "广播消息: " + shouldBroadcastMessage() + "\n" +
+                "动作栏显示: " + shouldShowInActionbar() + "\n" +
+                "调试模式: " + isDebugMode() + "\n" +
+                "最大堆叠: " + getMaxItemStackCount() + "\n";
     }
 
     public interface ConfigProvider {

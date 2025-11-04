@@ -12,6 +12,7 @@ import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.config.ClientConfig;
 import net.redstone233.nsp.neoforge.OneShotModNeoForge;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -315,13 +316,11 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         int stackCount = MAX_ITEM_STACK_COUNT.get();
         if (stackCount > 99) {
             try {
-                // 使用反射调用 StackSystemManager 来同步系统
-                Class<?> stackSystemManager = Class.forName("net.redstone233.nsp.util.StackSystemManager");
-                java.lang.reflect.Method modifyMethod = stackSystemManager.getMethod("modifyStackSystem", int.class);
-                modifyMethod.invoke(null, stackCount);
-                OneShotModNeoForge.LOGGER.info("配置加载时同步堆叠系统: {}", stackCount);
+                Class<?> clientConfig = Class.forName("net.redstone233.nsp.config.ClientConfig");
+                Method reloadMethod = clientConfig.getMethod("onConfigReload");
+                reloadMethod.invoke(null);
             } catch (Exception e) {
-                OneShotModNeoForge.LOGGER.warn("配置加载时同步堆叠系统失败: {}", e.getMessage());
+                OneShotModNeoForge.LOGGER.warn("无法通知配置系统配置加载: {}", e.getMessage());
             }
         }
         OneShotModNeoForge.LOGGER.info("一击必杀配置已加载 (NeoForge)");
@@ -333,12 +332,11 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         int stackCount = MAX_ITEM_STACK_COUNT.get();
         if (stackCount > 99) {
             try {
-                Class<?> stackSystemManager = Class.forName("net.redstone233.nsp.util.StackSystemManager");
-                java.lang.reflect.Method modifyMethod = stackSystemManager.getMethod("modifyStackSystem", int.class);
-                modifyMethod.invoke(null, stackCount);
-                OneShotModNeoForge.LOGGER.info("配置重载时同步堆叠系统: {}", stackCount);
+                Class<?> clientConfig = Class.forName("net.redstone233.nsp.config.ClientConfig");
+                Method reloadMethod = clientConfig.getMethod("onConfigReload");
+                reloadMethod.invoke(null);
             } catch (Exception e) {
-                OneShotModNeoForge.LOGGER.warn("配置重载时同步堆叠系统失败: {}", e.getMessage());
+                OneShotModNeoForge.LOGGER.warn("无法通知配置系统配置重载: {}", e.getMessage());
             }
         }
         OneShotModNeoForge.LOGGER.info("一击必杀配置已重载 (NeoForge)");
