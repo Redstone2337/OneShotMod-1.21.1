@@ -1,4 +1,3 @@
-// common/src/main/java/net/redstone233/nsp/mixin/ItemAccessor.java
 package net.redstone233.nsp.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +14,6 @@ public interface ItemAccessor {
     }
 
     // 设置 MAX_MAX_COUNT 字段的值
-    // 注意：对 final 字段的修改可能在某些环境下无效或不稳定
     @Accessor("MAX_MAX_COUNT")
     static void setMaxMaxCount(int value) {
         throw new AssertionError("Mixin accessor not implemented!");

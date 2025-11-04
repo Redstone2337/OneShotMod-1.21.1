@@ -344,6 +344,15 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
         return SPEC;
     }
 
+
+    /**
+     * 保存配置
+     */
+    public void saveConfig() {
+        // NeoForge 配置会自动保存，这里不需要额外操作
+        OneShotModNeoForge.LOGGER.debug("NeoForge 配置已自动保存");
+    }
+
     /**
      * 重置为默认值
      */

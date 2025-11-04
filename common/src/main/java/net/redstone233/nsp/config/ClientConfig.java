@@ -64,6 +64,10 @@ public class ClientConfig {
         return configProvider != null ? configProvider.getMaxItemStackCount() : Item.MAX_MAX_COUNT;
     }
 
+    public static ConfigProvider getConfigProvider() {
+        return configProvider;
+    }
+
     /**
      * 验证配置的完整性
      */

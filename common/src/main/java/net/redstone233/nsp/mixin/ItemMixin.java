@@ -1,42 +1,20 @@
 package net.redstone233.nsp.mixin;
 
 import net.minecraft.item.Item;
-import net.redstone233.nsp.OneShotMod;
-import net.redstone233.nsp.config.ClientConfig;
+import net.redstone233.nsp.util.StackSystemManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
-@Mixin(Item.class)// 使用 targets 确保准确指向
+@Mixin(Item.class)
 public class ItemMixin {
 
-    @Inject(method = "<clinit>", at = @At("TAIL"))
-    private static void overrideMaxMaxCount(CallbackInfo ci) {
-        try {
-            // 从配置获取新的最大值
-            int newMaxCount = ClientConfig.getMaxItemStackCount();
-            OneShotMod.LOGGER.info("Attempting to override MAX_MAX_COUNT to: {}", newMaxCount);
-
-            // 使用反射在静态初始化阶段修改字段
-            Field field = net.minecraft.item.Item.class.getDeclaredField("MAX_MAX_COUNT");
-            field.setAccessible(true);
-
-            // 移除 final 修饰符
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-            // 设置新值
-            field.set(null, newMaxCount);
-
-            OneShotMod.LOGGER.info("Successfully set MAX_MAX_COUNT to: {}", newMaxCount);
-
-        } catch (Exception e) {
-            OneShotMod.LOGGER.error("Failed to modify MAX_MAX_COUNT: {}", e.getMessage());
+    @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
+    private void overrideGetMaxCount(CallbackInfoReturnable<Integer> cir) {
+        int customMaxCount = StackSystemManager.getCurrentStackCount();
+        if (customMaxCount != 64) {
+            cir.setReturnValue(customMaxCount);
         }
     }
 }

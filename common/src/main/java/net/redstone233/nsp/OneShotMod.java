@@ -1,7 +1,8 @@
 package net.redstone233.nsp;
 
-import net.redstone233.nsp.config.ClientConfig;
+import net.redstone233.nsp.command.StackCommand;
 import net.redstone233.nsp.event.AttackEventHandler;
+import net.redstone233.nsp.util.StackSystemManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,5 +15,7 @@ public final class OneShotMod {
         // Write common init code here.
         AttackEventHandler.register();
         LOGGER.info("Mod {} initialized", MOD_ID);
+        StackCommand.register();
+        StackSystemManager.initialize();
     }
 }
