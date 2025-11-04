@@ -9,6 +9,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.config.ClientConfig;
+import net.redstone233.nsp.util.StackSystemManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -367,13 +368,24 @@ public class FabricConfigImpl implements ClientConfig.ConfigProvider {
 
     private static void onConfigLoad(ModConfig modConfig) {
         validateConfig();
-        OneShotMod.LOGGER.info("一击必杀模组配置已加载");
+        // 配置重载时同步堆叠系统
+        int stackCount = MAX_ITEM_STACK_COUNT.get();
+        if (stackCount > 99) {
+            try {
+                StackSystemManager.modifyStackSystem(stackCount);
+                OneShotMod.LOGGER.info("配置重载时同步堆叠系统: {}", stackCount);
+            } catch (Exception e) {
+                OneShotMod.LOGGER.warn("配置重载时同步堆叠系统失败: {}", e.getMessage());
+            }
+        }
+
+        OneShotMod.LOGGER.info("一击必杀模组配置已重新加载");
     }
 
     // 配置加载事件处理
 
     // 配置验证
-    private static void validateConfig() {
+    static void validateConfig() {
         // 验证概率值在合理范围内
         if (CHANCE.get() < 0 || CHANCE.get() > 100) {
             OneShotMod.LOGGER.error("一击必杀概率值超出范围 (0-100)，当前值: {}", CHANCE.get());

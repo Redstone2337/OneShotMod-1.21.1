@@ -1,3 +1,4 @@
+// FabricConfigScreen.java - 在 fabric 模块中
 package net.redstone233.nsp.fabric.screen;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -8,20 +9,22 @@ import net.minecraft.item.Item;
 import net.minecraft.text.Text;
 import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.fabric.config.FabricConfigImpl;
+import net.redstone233.nsp.util.StackSystemManager;
 
 import java.util.Arrays;
 
 public class FabricConfigScreen {
 
     public static Screen createConfigScreen(Screen parent) {
-        // 初始化ConfigBuilder，设置父屏幕和标题（使用硬编码文本）
-        // 当用户点击保存时执行
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Text.literal("一击必杀模组配置"))
-                .setSavingRunnable(FabricConfigImpl::saveConfig);
+                .setSavingRunnable(() -> {
+                    // 保存配置时调用 StackSystemManager 确保同步
+                    FabricConfigImpl.saveConfig();
+                    OneShotMod.LOGGER.info("配置屏幕保存完成");
+                });
 
-        // 获取EntryBuilder用于创建配置项
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
         // ==================== 功能开关分类 ====================
@@ -42,7 +45,11 @@ public class FabricConfigScreen {
         features.addEntry(entryBuilder.startIntSlider(Text.literal("堆叠数量"), FabricConfigImpl.MAX_ITEM_STACK_COUNT.get(), 1, OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)
                 .setDefaultValue(Item.DEFAULT_MAX_COUNT)
                 .setTooltip(Text.literal("最大物品堆叠数量 (1-").append(Text.literal(String.valueOf(OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT)).append(")")))
-                .setSaveConsumer(FabricConfigImpl.MAX_ITEM_STACK_COUNT::set)
+                .setSaveConsumer(newValue -> {
+                    // 关键修改：当堆叠数量改变时，调用 StackSystemManager 确保同步
+                    FabricConfigImpl.MAX_ITEM_STACK_COUNT.set(newValue);
+                    StackSystemManager.onConfigScreenUpdate(newValue);
+                })
                 .build());
 
         // ==================== 触发条件分类 ====================
@@ -98,6 +105,15 @@ public class FabricConfigScreen {
                 .setDefaultValue(false)
                 .setTooltip(Text.literal("是否在动作栏显示简短提示\n如果启用，会在玩家动作栏显示简化的提示信息"))
                 .setSaveConsumer(FabricConfigImpl.SHOW_IN_ACTIONBAR::set)
+                .build());
+
+        // ==================== 系统状态分类 ====================
+        ConfigCategory system = builder.getOrCreateCategory(Text.literal("系统状态"));
+
+        system.addEntry(entryBuilder.startTextDescription(Text.literal(StackSystemManager.getSystemStatus()))
+                .build());
+
+        system.addEntry(entryBuilder.startTextDescription(Text.literal("使用 /stack info 命令查看详细系统信息"))
                 .build());
 
         return builder.build();

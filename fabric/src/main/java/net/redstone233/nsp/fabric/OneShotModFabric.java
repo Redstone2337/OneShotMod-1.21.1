@@ -5,7 +5,9 @@ import net.fabricmc.api.ModInitializer;
 import net.redstone233.nsp.command.StackCommand;
 import net.redstone233.nsp.config.ClientConfig;
 import net.redstone233.nsp.fabric.config.FabricConfigImpl;
+import net.redstone233.nsp.fabric.config.FabricConfigSyncHandler;
 import net.redstone233.nsp.fabric.keys.ModKeys;
+import net.redstone233.nsp.util.StackSystemManager;
 
 public final class OneShotModFabric implements ModInitializer {
     @Override
@@ -20,5 +22,8 @@ public final class OneShotModFabric implements ModInitializer {
         OneShotMod.init();
         ModKeys.register();
         StackCommand.register();
+
+        StackSystemManager.setConfigSyncHandler(new FabricConfigSyncHandler());
+        StackSystemManager.initialize();
     }
 }

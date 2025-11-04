@@ -311,15 +311,40 @@ public class NeoForgeConfigImpl implements ClientConfig.ConfigProvider {
     }
     public static void onConfigLoad(final ModConfigEvent.Loading configEvent) {
         validateConfig();
+        // 配置加载时同步堆叠系统
+        int stackCount = MAX_ITEM_STACK_COUNT.get();
+        if (stackCount > 99) {
+            try {
+                // 使用反射调用 StackSystemManager 来同步系统
+                Class<?> stackSystemManager = Class.forName("net.redstone233.nsp.util.StackSystemManager");
+                java.lang.reflect.Method modifyMethod = stackSystemManager.getMethod("modifyStackSystem", int.class);
+                modifyMethod.invoke(null, stackCount);
+                OneShotModNeoForge.LOGGER.info("配置加载时同步堆叠系统: {}", stackCount);
+            } catch (Exception e) {
+                OneShotModNeoForge.LOGGER.warn("配置加载时同步堆叠系统失败: {}", e.getMessage());
+            }
+        }
         OneShotModNeoForge.LOGGER.info("一击必杀配置已加载 (NeoForge)");
     }
 
     public static void onConfigReload(final ModConfigEvent.Reloading configEvent) {
         validateConfig();
+        // 配置重载时同步堆叠系统
+        int stackCount = MAX_ITEM_STACK_COUNT.get();
+        if (stackCount > 99) {
+            try {
+                Class<?> stackSystemManager = Class.forName("net.redstone233.nsp.util.StackSystemManager");
+                java.lang.reflect.Method modifyMethod = stackSystemManager.getMethod("modifyStackSystem", int.class);
+                modifyMethod.invoke(null, stackCount);
+                OneShotModNeoForge.LOGGER.info("配置重载时同步堆叠系统: {}", stackCount);
+            } catch (Exception e) {
+                OneShotModNeoForge.LOGGER.warn("配置重载时同步堆叠系统失败: {}", e.getMessage());
+            }
+        }
         OneShotModNeoForge.LOGGER.info("一击必杀配置已重载 (NeoForge)");
     }
 
-    private static void validateConfig() {
+    static void validateConfig() {
         // 验证概率值在合理范围内
         if (CHANCE.get() < 0 || CHANCE.get() > 100) {
             OneShotModNeoForge.LOGGER.error("一击必杀概率值超出范围 (0-100)，当前值: {}", CHANCE.get());

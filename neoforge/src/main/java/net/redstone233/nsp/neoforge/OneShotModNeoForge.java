@@ -8,12 +8,15 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.redstone233.nsp.OneShotMod;
 import net.neoforged.fml.common.Mod;
 import net.redstone233.nsp.command.StackCommand;
 import net.redstone233.nsp.config.ClientConfig;
 import net.redstone233.nsp.neoforge.config.NeoForgeConfigImpl;
+import net.redstone233.nsp.neoforge.config.NeoForgeConfigSyncHandler;
+import net.redstone233.nsp.util.StackSystemManager;
 import org.slf4j.Logger;
 
 @Mod(OneShotMod.MOD_ID)
@@ -41,6 +44,9 @@ public final class OneShotModNeoForge {
         // Some common setup code
         OneShotMod.init();
         StackCommand.register();
+        StackSystemManager.setConfigSyncHandler(new NeoForgeConfigSyncHandler());
+        StackSystemManager.initialize();
+
         LOGGER.info("HELLO FROM COMMON SETUP");
     }
 
@@ -54,5 +60,10 @@ public final class OneShotModNeoForge {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+
     }
 }

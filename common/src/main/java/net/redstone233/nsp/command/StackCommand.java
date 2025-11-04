@@ -1,9 +1,8 @@
-// StackCommand.java
 package net.redstone233.nsp.command;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import net.minecraft.server.command.CommandManager;
@@ -18,17 +17,23 @@ public class StackCommand {
 
     // 定义堆叠数量的最小和最大值
     private static final int MIN_STACK_COUNT = 1;
-    private static final int MAX_STACK_COUNT = 32767;
+    private static final int MAX_STACK_COUNT = OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT;
 
     public static void register() {
-        CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
-            registerCommand(dispatcher);
-            registerHelpCommand(dispatcher);
+        // 使用 Architectury 的跨平台命令注册
+        CommandRegistrationEvent.EVENT.register((dispatcher, registry, environment) -> {
+            // 注册主命令
+            dispatcher.register(buildStackCommand());
+
+            // 注册帮助命令
+            dispatcher.register(buildStackHelpCommand());
+
+            OneShotMod.LOGGER.info("堆叠命令已在 {} 端成功注册", getPlatformName());
         });
     }
 
-    private static void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("stack")
+    private static LiteralArgumentBuilder<ServerCommandSource> buildStackCommand() {
+        return CommandManager.literal("stack")
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(CommandManager.literal("get")
                         .executes(StackCommand::getStackCount))
@@ -43,10 +48,45 @@ public class StackCommand {
                 .then(CommandManager.literal("info")
                         .executes(StackCommand::getStackInfo))
                 .then(CommandManager.literal("force-update")
-                        .executes(StackCommand::forceUpdateStackSystem))
-        );
+                        .executes(StackCommand::forceUpdateStackSystem));
     }
 
+    private static LiteralArgumentBuilder<ServerCommandSource> buildStackHelpCommand() {
+        return CommandManager.literal("stackhelp")
+                .executes(context -> {
+                    Text helpMessage = Text.literal(
+                            "§6=== 堆叠命令帮助 ===\n" +
+                                    "§a/stack get §7- 查看当前堆叠数量\n" +
+                                    "§a/stack info §7- 查看堆叠系统详细信息\n" +
+                                    "§a/stack reset §7- 重置为默认堆叠数量(64)\n" +
+                                    "§a/stack set <数量> §7- 设置最大堆叠数量 (1-32767)\n" +
+                                    "§a/stack remove <数量> §7- 减少指定的堆叠数量 (1-32767)\n" +
+                                    "§a/stack force-update §7- 强制更新堆叠系统\n" +
+                                    "§e注意: 需要权限等级 2 才能使用这些命令"
+                    );
+                    context.getSource().sendFeedback(() -> helpMessage, false);
+                    return Command.SINGLE_SUCCESS;
+                });
+    }
+
+    // 获取平台名称（用于日志）
+    private static String getPlatformName() {
+        try {
+            // 检查是否是 NeoForge
+            Class.forName("net.neoforged.fml.common.Mod");
+            return "NeoForge";
+        } catch (ClassNotFoundException e1) {
+            try {
+                // 检查是否是 Fabric
+                Class.forName("net.fabricmc.api.EnvType");
+                return "Fabric";
+            } catch (ClassNotFoundException e2) {
+                return "Unknown";
+            }
+        }
+    }
+
+    // 以下方法保持不变...
     private static int getStackCount(CommandContext<ServerCommandSource> context) {
         try {
             int currentCount = StackSystemManager.getCurrentStackCount();
@@ -121,7 +161,7 @@ public class StackCommand {
             boolean success = StackSystemManager.modifyStackSystem(defaultCount);
 
             // 保存配置
-            boolean saved = StackSystemManager.saveConfigToFile(defaultCount);
+            boolean saved = StackSystemManager.saveConfigToFile();
 
             Text message;
             if (success) {
@@ -163,7 +203,7 @@ public class StackCommand {
             boolean success = StackSystemManager.modifyStackSystem(newCount);
 
             // 保存配置
-            boolean saved = StackSystemManager.saveConfigToFile(newCount);
+            boolean saved = StackSystemManager.saveConfigToFile();
 
             Text message;
             if (success) {
@@ -207,7 +247,7 @@ public class StackCommand {
             boolean success = StackSystemManager.modifyStackSystem(newCount);
 
             // 保存配置
-            boolean saved = StackSystemManager.saveConfigToFile(newCount);
+            boolean saved = StackSystemManager.saveConfigToFile();
 
             Text message;
             if (success) {
@@ -233,25 +273,5 @@ public class StackCommand {
             OneShotMod.LOGGER.error("减少堆叠数量失败", e);
             return 0;
         }
-    }
-
-    // 帮助命令
-    private static void registerHelpCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("stackhelp")
-                .executes(context -> {
-                    Text helpMessage = Text.literal(
-                            "§6=== 堆叠命令帮助 ===\n" +
-                                    "§a/stack get §7- 查看当前堆叠数量\n" +
-                                    "§a/stack info §7- 查看堆叠系统详细信息\n" +
-                                    "§a/stack reset §7- 重置为默认堆叠数量(64)\n" +
-                                    "§a/stack set <数量> §7- 设置最大堆叠数量 (1-32767)\n" +
-                                    "§a/stack remove <数量> §7- 减少指定的堆叠数量 (1-32767)\n" +
-                                    "§a/stack force-update §7- 强制更新堆叠系统\n" +
-                                    "§e注意: 需要权限等级 2 才能使用这些命令"
-                    );
-                    context.getSource().sendFeedback(() -> helpMessage, false);
-                    return Command.SINGLE_SUCCESS;
-                })
-        );
     }
 }
