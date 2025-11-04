@@ -1,6 +1,7 @@
 package net.redstone233.nsp.mixin;
 
 import net.minecraft.item.ItemStack;
+import net.redstone233.nsp.OneShotMod;
 import net.redstone233.nsp.util.StackSystemManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,10 +12,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class CustomMaxItemStackCountMixin {
 
     @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
-    private void getItemStackMaxCount(CallbackInfoReturnable<Integer> cir) {
+    private void getMaxCount(CallbackInfoReturnable<Integer> cir) {
         int customMaxCount = StackSystemManager.getCurrentStackCount();
-        if (customMaxCount != 64) {
+
+        // 确保数值在有效范围内
+        if (customMaxCount >= 1 && customMaxCount <= OneShotMod.CUSTOM_MAX_ITEM_STACK_COUNT) {
             cir.setReturnValue(customMaxCount);
         }
+        // 如果数值无效，保持原样（不设置返回值，让原方法继续执行）
     }
 }
