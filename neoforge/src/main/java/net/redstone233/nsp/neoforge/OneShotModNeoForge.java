@@ -61,9 +61,4 @@ public final class OneShotModNeoForge {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
     }
-
-    @SubscribeEvent
-    public void onRegisterCommands(RegisterCommandsEvent event) {
-
-    }
 }
