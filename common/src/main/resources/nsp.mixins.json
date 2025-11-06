@@ -7,9 +7,12 @@
     "DrawContextMixin"
   ],
   "mixins": [
+    "ComponentHolderMixin",
+    "CreativeInventoryActionC2SPacketMixin",
     "ItemMixin",
+    "ItemStackCodecMixin",
     "ItemStackMixin",
-    "ScreenHandlerMixin",
+    "ItemStackValidationMixin",
     "ServerPlayNetworkHandlerMixin",
     "SlotMixin"
   ],
