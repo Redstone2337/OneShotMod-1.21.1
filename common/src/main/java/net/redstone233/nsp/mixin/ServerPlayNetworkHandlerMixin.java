@@ -17,14 +17,17 @@ public class ServerPlayNetworkHandlerMixin {
                     target = "Lnet/minecraft/item/ItemStack;getCount()I"
             )
     )
-    private int redirectCountCheck(ItemStack stack) {
+    private ItemStack redirectCountCheck(ItemStack stack) {
         int actualCount = stack.getCount();
         int configMax = ClientConfig.getMaxItemStackCount();
         int vanillaMax = stack.getMaxCount();
 
         if (actualCount > vanillaMax && actualCount <= configMax) {
-            return vanillaMax;
+            // 返回修改后的 ItemStack
+            ItemStack modifiedStack = stack.copy();
+            modifiedStack.setCount(vanillaMax);
+            return modifiedStack;
         }
-        return actualCount;
+        return stack;
     }
 }
