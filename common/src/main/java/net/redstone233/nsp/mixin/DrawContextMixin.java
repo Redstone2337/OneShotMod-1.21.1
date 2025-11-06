@@ -4,36 +4,32 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.item.ItemStack;
 import net.redstone233.nsp.config.ClientConfig;
+import net.redstone233.nsp.util.CountDisplayData;
+import net.redstone233.nsp.util.ItemCountFormatter;
+import net.redstone233.nsp.util.RenderPosition;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * 物品堆叠数量显示增强 Mixin
+ * <p>
+ * 功能特性：
+ * 1. 突破99个物品的显示限制
+ * 2. 根据数量级智能格式化数字（k, M, B）
+ * 3. 颜色分级系统，便于视觉识别不同数量级
+ * 4. 支持自定义计数文本
+ * 5. 完整的配置兼容性
+ */
 @Mixin(DrawContext.class)
 public class DrawContextMixin {
 
-    @Unique
-    private static final int MAX_DISPLAY_COUNT = 999999;
-
-    @Unique
-    private static final float MIN_SCALE = 0.5f;
-
-    @Unique
-    private static final int DEFAULT_COLOR = 0xFFFFFF;
-
-    @Unique
-    private static final int WARNING_COLOR = 0xFF5555;
-
-    @Unique
-    private static final int ALERT_COLOR = 0xFFAA00;
-
-    @Unique
-    private static final int NOTICE_COLOR = 0xFFFF55;
+    // ==================== Mixin 注入点 ====================
 
     /**
-     * 修改物品槽中的物品数量渲染，突破99个显示限制
-     * 在 Fabric 1.21.1 中，物品数量渲染在 DrawContext.drawItemInSlot 方法中
+     * 主注入方法 - 拦截物品数量渲染
      */
     @Inject(
             method = "drawItemInSlot(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
@@ -44,121 +40,75 @@ public class DrawContextMixin {
             ),
             cancellable = true
     )
-    private void modifyItemCountRender(TextRenderer textRenderer, ItemStack stack, int x, int y, String countOverride, CallbackInfo ci) {
-        if (stack.isEmpty()) {
+    private void onRenderItemCount(TextRenderer textRenderer, ItemStack stack, int x, int y, String countOverride, CallbackInfo ci) {
+        // 检查前置条件
+        if (!oneShotMod_1_21_1$shouldModifyRender(stack)) {
             return;
         }
 
-        // 检查是否启用了自定义堆叠配置
-        if (ClientConfig.getConfigProvider() != null) {
-            int customMaxCount = ClientConfig.getMaxItemStackCount();
-            if (customMaxCount > 99) {
-                // 取消原版的数量渲染
-                ci.cancel();
-
-                // 获取实际数量
-                int count = stack.getCount();
-                if (count == 1 && countOverride == null) {
-                    return; // 数量为1且没有自定义标签，不渲染
-                }
-
-                // 使用我们的自定义渲染
-                oneShotMod_1_21_1$renderCustomItemCount((DrawContext)(Object)this, textRenderer, stack, x, y, countOverride);
-            }
-        }
+        // 取消原版渲染，使用自定义渲染
+        ci.cancel();
+        oneShotMod_1_21_1$renderEnhancedItemCount((DrawContext)(Object)this, textRenderer, stack, x, y, countOverride);
     }
 
+    // ==================== 核心渲染逻辑 ====================
+
+    /**
+     * 增强的物品数量渲染方法
+     */
     @Unique
-    private void oneShotMod_1_21_1$renderCustomItemCount(DrawContext context, TextRenderer textRenderer, ItemStack stack, int x, int y, String countOverride) {
+    private void oneShotMod_1_21_1$renderEnhancedItemCount(DrawContext context, TextRenderer textRenderer, ItemStack stack, int x, int y, String countOverride) {
         int count = stack.getCount();
-        String countString = countOverride != null ? countOverride : oneShotMod_1_21_1$formatCount(count);
 
-        // 计算缩放和位置
-        float scale = oneShotMod_1_21_1$calculateScale(countString);
-        int stringWidth = textRenderer.getWidth(countString);
-        int adjustedX = x + 19 - 2 - (int)(stringWidth * scale);
-        int adjustedY = y + 6 + 3 + oneShotMod_1_21_1$getVerticalOffset(scale); // 原版位置是 y + 6 + 3，我们在此基础上调整垂直偏移
-
-        // 选择颜色
-        int color = oneShotMod_1_21_1$getTextColor(count, ClientConfig.getMaxItemStackCount());
-
-        // 保存当前的变换矩阵
-        context.getMatrices().push();
-        context.getMatrices().translate(adjustedX, adjustedY, 0);
-        context.getMatrices().scale(scale, scale, 1.0f);
-
-        // 绘制文本 - 使用 DrawContext 的 drawText 方法
-        context.drawText(textRenderer, countString, 0, 0, color, false);
-
-        // 恢复变换矩阵
-        context.getMatrices().pop();
-    }
-
-    @Unique
-    private String oneShotMod_1_21_1$formatCount(int count) {
-        if (count > MAX_DISPLAY_COUNT) {
-            return "∞"; // 超过最大显示数量显示无穷大符号
+        // 检查是否需要渲染（单个物品且无自定义文本时不渲染）
+        if (oneShotMod_1_21_1$shouldSkipRendering(count, countOverride)) {
+            return;
         }
 
-        if (count < 1000) {
-            return String.valueOf(count);
-        } else if (count < 10000) {
-            // 1,000-9,999: 显示为 1.2k
-            float kValue = count / 1000.0f;
-            if (kValue == (int) kValue) {
-                return String.format("%dk", (int) kValue);
-            } else {
-                return String.format("%.1fk", kValue);
-            }
-        } else if (count < 1000000) {
-            // 10,000-999,999: 显示为 12k
-            return String.format("%dk", count / 1000);
-        } else {
-            // 1,000,000+: 显示为 1.2M
-            float mValue = count / 1000000.0f;
-            if (mValue == (int) mValue) {
-                return String.format("%dM", (int) mValue);
-            } else {
-                return String.format("%.1fM", mValue);
-            }
-        }
+        // 处理计数数据
+        CountDisplayData displayData = ItemCountFormatter.processCountData(count, countOverride);
+
+        // 计算渲染位置
+        RenderPosition position = oneShotMod_1_21_1$calculateRenderPosition(textRenderer, displayData.formattedText(), x, y);
+
+        // 执行渲染
+        oneShotMod_1_21_1$renderCountText(context, textRenderer, displayData, position);
     }
 
+    /**
+     * 计算渲染位置
+     */
     @Unique
-    private float oneShotMod_1_21_1$calculateScale(String countString) {
-        int length = countString.length();
-
-        return switch (length) {
-            case 1, 2 -> 1.0f;
-            case 3 -> 0.9f;
-            case 4 -> 0.8f;
-            case 5 -> 0.7f;
-            case 6 -> 0.6f;
-            default -> MIN_SCALE;
-        };
+    private RenderPosition oneShotMod_1_21_1$calculateRenderPosition(TextRenderer textRenderer, String text, int x, int y) {
+        int textWidth = textRenderer.getWidth(text);
+        return RenderPosition.forItemSlot(x, y, textWidth);
     }
 
+    /**
+     * 执行文本渲染
+     */
     @Unique
-    private int oneShotMod_1_21_1$getVerticalOffset(float scale) {
-        // 根据缩放调整垂直位置，保持居中
-        return (int) ((9 - 9 * scale) / 2);
+    private void oneShotMod_1_21_1$renderCountText(DrawContext context, TextRenderer textRenderer, CountDisplayData data, RenderPosition position) {
+        context.drawText(textRenderer, data.formattedText(), position.x(), position.y(), data.color(), false);
     }
 
+    // ==================== 工具方法 ====================
+
+    /**
+     * 检查是否应该修改渲染
+     */
     @Unique
-    private int oneShotMod_1_21_1$getTextColor(int count, int maxCount) {
-        // 默认白色
-        if (maxCount <= 0) return DEFAULT_COLOR;
+    private boolean oneShotMod_1_21_1$shouldModifyRender(ItemStack stack) {
+        return !stack.isEmpty() &&
+                ClientConfig.getConfigProvider() != null &&
+                ClientConfig.getMaxItemStackCount() > 99;
+    }
 
-        float percentage = (float) count / maxCount;
-
-        if (percentage > 0.9f) {
-            return WARNING_COLOR; // 红色警告（接近最大值）
-        } else if (percentage > 0.75f) {
-            return ALERT_COLOR; // 橙色警告
-        } else if (percentage > 0.5f) {
-            return NOTICE_COLOR; // 黄色提示
-        } else {
-            return DEFAULT_COLOR; // 白色正常
-        }
+    /**
+     * 检查是否应该跳过渲染
+     */
+    @Unique
+    private boolean oneShotMod_1_21_1$shouldSkipRendering(int count, String countOverride) {
+        return count == 1 && countOverride == null;
     }
 }

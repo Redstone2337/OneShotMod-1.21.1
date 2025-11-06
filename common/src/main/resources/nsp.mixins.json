@@ -7,10 +7,10 @@
     "DrawContextMixin"
   ],
   "mixins": [
-    "ComponentItemHandlerMixin",
-    "CustomMaxItemStackCountMixin",
-    "EntityEquipmentInvWrapperMixin",
-    "ItemStackHandlerMixin"
+    "ItemMixin",
+    "ItemStackMixin",
+    "ScreenHandlerMixin",
+    "SlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1
