@@ -7,8 +7,10 @@
     "DrawContextMixin"
   ],
   "mixins": [
+    "ComponentItemHandlerMixin",
     "CustomMaxItemStackCountMixin",
-    "ItemAccessor"
+    "EntityEquipmentInvWrapperMixin",
+    "ItemStackHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

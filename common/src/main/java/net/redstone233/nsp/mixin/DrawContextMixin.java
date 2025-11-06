@@ -63,24 +63,24 @@ public class DrawContextMixin {
                 }
 
                 // 使用我们的自定义渲染
-                renderCustomItemCount((DrawContext)(Object)this, textRenderer, stack, x, y, countOverride);
+                oneShotMod_1_21_1$renderCustomItemCount((DrawContext)(Object)this, textRenderer, stack, x, y, countOverride);
             }
         }
     }
 
     @Unique
-    private void renderCustomItemCount(DrawContext context, TextRenderer textRenderer, ItemStack stack, int x, int y, String countOverride) {
+    private void oneShotMod_1_21_1$renderCustomItemCount(DrawContext context, TextRenderer textRenderer, ItemStack stack, int x, int y, String countOverride) {
         int count = stack.getCount();
-        String countString = countOverride != null ? countOverride : formatCount(count);
+        String countString = countOverride != null ? countOverride : oneShotMod_1_21_1$formatCount(count);
 
         // 计算缩放和位置
-        float scale = calculateScale(countString);
+        float scale = oneShotMod_1_21_1$calculateScale(countString);
         int stringWidth = textRenderer.getWidth(countString);
         int adjustedX = x + 19 - 2 - (int)(stringWidth * scale);
-        int adjustedY = y + 6 + 3 + getVerticalOffset(scale); // 原版位置是 y + 6 + 3，我们在此基础上调整垂直偏移
+        int adjustedY = y + 6 + 3 + oneShotMod_1_21_1$getVerticalOffset(scale); // 原版位置是 y + 6 + 3，我们在此基础上调整垂直偏移
 
         // 选择颜色
-        int color = getTextColor(count, ClientConfig.getMaxItemStackCount());
+        int color = oneShotMod_1_21_1$getTextColor(count, ClientConfig.getMaxItemStackCount());
 
         // 保存当前的变换矩阵
         context.getMatrices().push();
@@ -95,7 +95,7 @@ public class DrawContextMixin {
     }
 
     @Unique
-    private String formatCount(int count) {
+    private String oneShotMod_1_21_1$formatCount(int count) {
         if (count > MAX_DISPLAY_COUNT) {
             return "∞"; // 超过最大显示数量显示无穷大符号
         }
@@ -125,7 +125,7 @@ public class DrawContextMixin {
     }
 
     @Unique
-    private float calculateScale(String countString) {
+    private float oneShotMod_1_21_1$calculateScale(String countString) {
         int length = countString.length();
 
         return switch (length) {
@@ -139,13 +139,13 @@ public class DrawContextMixin {
     }
 
     @Unique
-    private int getVerticalOffset(float scale) {
+    private int oneShotMod_1_21_1$getVerticalOffset(float scale) {
         // 根据缩放调整垂直位置，保持居中
         return (int) ((9 - 9 * scale) / 2);
     }
 
     @Unique
-    private int getTextColor(int count, int maxCount) {
+    private int oneShotMod_1_21_1$getTextColor(int count, int maxCount) {
         // 默认白色
         if (maxCount <= 0) return DEFAULT_COLOR;
 
