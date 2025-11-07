@@ -89,7 +89,20 @@ public class DrawContextMixin {
      */
     @Unique
     private void oneShotMod_1_21_1$renderCountText(DrawContext context, TextRenderer textRenderer, CountDisplayData data, RenderPosition position) {
-        context.drawText(textRenderer, data.formattedText(), position.x(), position.y(), data.color(), false);
+        String text = data.formattedText();
+
+        // 精确复制原版的渲染逻辑：
+        // 1. 先绘制黑色阴影（向右下偏移1像素）
+        context.drawText(textRenderer, text, position.x() + 1, position.y() + 1, 0x000000, false);
+
+        // 2. 再绘制主文本（使用配置的颜色）
+        context.drawText(textRenderer, text, position.x(), position.y(), data.color(), false);
+
+        // 调试信息（可选）
+        if (ClientConfig.isDebugMode()) {
+            System.out.println("Rendered: '" + text + "' at (" + position.x() + ", " + position.y() +
+                    ") with color: " + String.format("#%06X", data.color()));
+        }
     }
 
     // ==================== 工具方法 ====================

@@ -9,12 +9,16 @@
   "mixins": [
     "ComponentHolderMixin",
     "CreativeInventoryActionC2SPacketMixin",
+    "InventoryMixin",
     "ItemMixin",
     "ItemStackCodecMixin",
     "ItemStackMixin",
     "ItemStackValidationMixin",
+    "PlayerInventoryMixin",
+    "ScreenHandlerMixin",
     "ServerPlayNetworkHandlerMixin",
-    "SlotMixin"
+    "SlotMixin",
+    "ValidationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
