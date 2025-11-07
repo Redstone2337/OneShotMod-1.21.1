@@ -7,18 +7,22 @@
     "DrawContextMixin"
   ],
   "mixins": [
-    "ComponentHolderMixin",
-    "CreativeInventoryActionC2SPacketMixin",
-    "InventoryMixin",
-    "ItemMixin",
-    "ItemStackCodecMixin",
-    "ItemStackMixin",
-    "ItemStackValidationMixin",
-    "PlayerInventoryMixin",
-    "ScreenHandlerMixin",
-    "ServerPlayNetworkHandlerMixin",
-    "SlotMixin",
-    "ValidationMixin"
+    "AccessorFurnaceInventory",
+    "MixinAbstractFurnaceBlockEntity",
+    "MixinAnvilScreenHandler",
+    "MixinAxolotlEntity",
+    "MixinCauldronBlock",
+    "MixinDispenserBehavior8",
+    "MixinDispenserBehavior9",
+    "MixinDispenserBlockEntity",
+    "MixinHorseScreenHandler",
+    "MixinItem",
+    "MixinItemStack",
+    "MixinJukeboxBlockEntity",
+    "MixinPotionItem",
+    "MixinPowderSnowBucketItem",
+    "MixinServerPlayNetworkHandler",
+    "MixinSuspiciousStewItem"
   ],
   "injectors": {
     "defaultRequire": 1
