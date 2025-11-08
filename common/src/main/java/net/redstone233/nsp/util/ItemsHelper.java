@@ -12,6 +12,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.redstone233.nsp.OneShotMod;
+import net.redstone233.nsp.config.ClientConfig; // 添加导入
 import org.slf4j.Logger;
 
 import java.util.*;;
@@ -31,12 +32,10 @@ public class ItemsHelper {
         return itemsHelper;
     }
 
-    // 动态获取最大堆叠数
+    // 动态获取最大堆叠数 - 修改为直接调用配置
     public static int getItemMaxCount() {
         try {
-            Class<?> configClass = Class.forName("net.redstone233.nsp.config.ClientConfig");
-            java.lang.reflect.Method method = configClass.getMethod("getMaxItemStackCount");
-            return (int) method.invoke(null);
+            return ClientConfig.getMaxItemStackCount();
         } catch (Exception e) {
             LOGGER.warn("[All Stackable] Failed to get config, using default max count 99");
             return 99; // 回退到原来的默认值
@@ -195,17 +194,19 @@ public class ItemsHelper {
         }
     }
 
+    // 修改 isModified 方法，使用配置值判断
     public static boolean isModified(ItemStack s) {
         if (s.isEmpty()) {
             return false;
         }
         Item i = s.getItem();
-        return ((IItemMaxCount) i).oneShotMod_1_21_1$getVanillaMaxCount() != i.getMaxCount(); // 更新方法名
+        // 判断当前堆叠数是否超过原版限制
+        return s.getCount() > ((IItemMaxCount) i).oneShotMod_1_21_1$getVanillaMaxCount();
     }
 
     // 添加配置重载支持
     public static void onConfigReloaded() {
-        LOGGER.info("[All Stackable] Config reloaded, max stack count is now: " + getItemMaxCount());
+        LOGGER.info("[All Stackable] Config reloaded, max stack count is now: {}", getItemMaxCount());
         // 这里可以根据需要添加重新应用配置的逻辑
     }
 }

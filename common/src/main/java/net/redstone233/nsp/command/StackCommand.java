@@ -268,7 +268,7 @@ public class StackCommand {
         try {
             ItemsHelper helper = ItemsHelper.getItemsHelper();
             LinkedList<Item> modifiedItems = helper.getAllModifiedItems();
-            Text message = getMessage(modifiedItems);
+            Text message = getItemsStatsMessage(modifiedItems); // 使用新方法名
 
             context.getSource().sendFeedback(() -> message, false);
             return Command.SINGLE_SUCCESS;
@@ -280,19 +280,17 @@ public class StackCommand {
         }
     }
 
-    private static @NotNull Text getMessage(LinkedList<Item> modifiedItems) {
+    // 新增方法：获取物品统计信息
+    private static @NotNull Text getItemsStatsMessage(LinkedList<Item> modifiedItems) {
         int totalItems = Registries.ITEM.getEntrySet().size();
-
-        int maxAllowed = ItemsHelper.getItemMaxCount();
-        int currentConfigCount = ClientConfig.getMaxItemStackCount();
+        int maxStackCount = ClientConfig.getMaxItemStackCount();
 
         return Text.literal(
                 "§6=== 物品堆叠统计 ===\n" +
                         "§a总物品数量: §e" + totalItems + "\n" +
                         "§a已修改物品: §e" + modifiedItems.size() + "\n" +
                         "§a修改比例: §e" + String.format("%.1f", (modifiedItems.size() * 100.0 / totalItems)) + "%\n" +
-                        "§a配置最大堆叠: §e" + currentConfigCount + "\n" +
-                        "§a实际最大堆叠: §e" + maxAllowed + "\n" +
+                        "§a配置最大堆叠: §e" + maxStackCount + "\n" +
                         "§a使用 §e/stack items list-modified §a查看详细列表"
         );
     }
@@ -330,7 +328,7 @@ public class StackCommand {
     private static int getConfigStatus(CommandContext<ServerCommandSource> context) {
         try {
             String syncStatus = StackSystemManager.getConfigSyncStatus();
-            Text message = getMessage(syncStatus);
+            Text message = getConfigStatusMessage(syncStatus); // 使用新方法名
             context.getSource().sendFeedback(() -> message, false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
@@ -341,7 +339,8 @@ public class StackCommand {
         }
     }
 
-    private static @NotNull Text getMessage(String syncStatus) {
+    // 新增方法：获取配置状态信息
+    private static @NotNull Text getConfigStatusMessage(String syncStatus) {
         boolean usingConfig = StackSystemManager.isUsingConfigSystem();
         String platform = getPlatformName();
 
@@ -428,7 +427,7 @@ public class StackCommand {
         try {
             String systemStatus = StackSystemManager.getSystemStatus();
             boolean usingConfig = StackSystemManager.isUsingConfigSystem();
-            Text message = getMessage(systemStatus, usingConfig);
+            Text message = getStackInfoMessage(systemStatus, usingConfig); // 使用新方法名
             context.getSource().sendFeedback(() -> message, false);
 
             return Command.SINGLE_SUCCESS;
@@ -440,7 +439,8 @@ public class StackCommand {
         }
     }
 
-    private static @NotNull Text getMessage(String systemStatus, boolean usingConfig) {
+    // 新增方法：获取堆叠系统信息
+    private static @NotNull Text getStackInfoMessage(String systemStatus, boolean usingConfig) {
         String syncStatus = StackSystemManager.getConfigSyncStatus();
 
         return Text.literal(

@@ -4,6 +4,7 @@ import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Item;
+import net.redstone233.nsp.config.ClientConfig;
 import net.redstone233.nsp.util.IItemMaxCount;
 import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.*;
@@ -39,7 +40,8 @@ public abstract class MixinItem implements IItemMaxCount {
 
     @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
     private void injectGetMaxCount(CallbackInfoReturnable<Integer> cir) {
-        cir.setReturnValue(this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.getItemMaxCount()));
+            cir.setReturnValue(this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ClientConfig.getMaxItemStackCount()
+        ));
     }
 
     @Redirect(method = "isEnchantable", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getMaxCount()I"))

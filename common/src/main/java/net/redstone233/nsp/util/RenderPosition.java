@@ -14,10 +14,10 @@ public record RenderPosition(int x, int y, int width) {
      */
     public static RenderPosition forItemSlot(int slotX, int slotY, int textWidth) {
         // 原版水平位置计算：槽位宽度(16) + 边距(2) - 文本宽度 - 右边距(2)
-//        int x = slotX + 16 + 2 - textWidth - 2;
-//
-//        // 原版垂直位置计算：槽位高度(16) - 文本高度(8) + 上边距(6) - 基线调整(1)
-//        int y = slotY + 16 - 8 + 6 - 1;
+        int x = slotX + 16 + 2 - textWidth - 2;
+
+        // 原版垂直位置计算：槽位高度(16) - 文本高度(8) + 上边距(6) - 基线调整(1)
+        int y = slotY + 16 - 8 + 6 - 1;
 
         return new RenderPosition(slotX, slotY, textWidth);
     }
