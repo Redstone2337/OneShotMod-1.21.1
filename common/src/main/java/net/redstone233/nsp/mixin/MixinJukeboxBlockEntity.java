@@ -2,7 +2,6 @@ package net.redstone233.nsp.mixin;
 
 import net.minecraft.block.entity.JukeboxBlockEntity;
 import net.minecraft.item.ItemStack;
-import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -20,7 +19,7 @@ public class MixinJukeboxBlockEntity {
     **/
     @ModifyVariable(method = "setStack", at = @At("HEAD"), argsOnly = true)
     private ItemStack setStack(ItemStack stack) {
-        if (ItemsHelper.isModified(stack) && stack.getCount() > 1) {
+        if (stack.getMaxCount() > 1 && stack.getCount() > 1) { 
             stack.setCount(1);
         }
         return stack;

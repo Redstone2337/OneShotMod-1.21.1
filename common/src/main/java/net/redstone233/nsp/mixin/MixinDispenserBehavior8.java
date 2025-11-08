@@ -5,7 +5,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPointer;
 import net.redstone233.nsp.util.IDispenserBlockEntity;
-import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,14 +33,12 @@ public class MixinDispenserBehavior8 {
             ),
             cancellable = true)
     public void dispenseOne(BlockPointer pointer, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
-        if (ItemsHelper.isModified(stack) && stack.getCount() > 1) {
+        if (stack.getMaxCount() > 1 && stack.getCount() > 1) {
             ItemStack newStack = stack.copy();
             newStack.decrement(1);
-//            if (((DispenserBlockEntity) pointer.getBlockEntity()).addToFirstFreeSlot(Items.BUCKET.getDefaultStack()) < 0) {
             if (!((IDispenserBlockEntity) pointer.blockEntity()).oneShotMod_1_21_1$tryInsertAndStackItem(Items.BUCKET.getDefaultStack())) {
                 this.fallbackBehavior.dispense(pointer, Items.BUCKET.getDefaultStack());
             }
-//            }
             cir.setReturnValue(newStack);
         }
     }

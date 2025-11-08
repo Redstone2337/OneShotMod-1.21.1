@@ -12,12 +12,10 @@ public class MixinDispenserBlockEntity implements IDispenserBlockEntity {
     @Shadow
     private DefaultedList<ItemStack> inventory;
 
-
     @Override
     public boolean oneShotMod_1_21_1$tryInsertAndStackItem(ItemStack itemStack) {
         boolean inserted = false;
-        for(int i = 0; i < this.inventory.size(); ++i) {
-            ItemStack invStack = this.inventory.get(i);
+        for (ItemStack invStack : this.inventory) {
             if (invStack.getItem() == itemStack.getItem() && invStack.getCount() < invStack.getMaxCount()) {
                 invStack.increment(1);
                 inserted = true;

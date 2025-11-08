@@ -1,9 +1,8 @@
 package net.redstone233.nsp.mixin;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPointer;
 import net.redstone233.nsp.util.IDispenserBlockEntity;
-import net.redstone233.nsp.util.ItemsHelper;
+import net.minecraft.util.math.BlockPointer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,7 +17,7 @@ public class MixinDispenserBehavior9 {
         ItemStack remainingStack = pointer.blockEntity().addToFirstFreeSlot(stack);
 
         // Check if the item is modified and if there's any remaining item stack after the operation
-        if (ItemsHelper.isModified(stack) && !remainingStack.isEmpty()) {
+        if (stack.getMaxCount() > 1 && !remainingStack.isEmpty()) {
             // Attempt custom logic to stack the remaining item
             boolean success = ((IDispenserBlockEntity) pointer.blockEntity()).oneShotMod_1_21_1$tryInsertAndStackItem(remainingStack);
 

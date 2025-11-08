@@ -4,8 +4,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.AnvilScreenHandler;
-import net.redstone233.nsp.util.IItemMaxCount;
-import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,7 +24,7 @@ public class MixinAnvilScreenHandler {
     @Redirect(method = "onTakeOutput", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/Inventory;setStack(ILnet/minecraft/item/ItemStack;)V"))
     private void decrementOne(Inventory inventory, int slot, ItemStack stack, PlayerEntity player, ItemStack takenStack) {
         ItemStack originalStack = inventory.getStack(slot);
-        if (ItemsHelper.isModified(originalStack) && originalStack.getCount() > 1) {
+        if (originalStack.getMaxCount() > 1 && originalStack.getCount() > 1) {
             if(stack.isEmpty()) {
                 stack = originalStack;
                 if (!player.getWorld().isClient) {
@@ -62,7 +60,7 @@ public class MixinAnvilScreenHandler {
     **/
     @ModifyVariable(method = "updateResult", at = @At("STORE"), ordinal = 0)
     private ItemStack copyOne(ItemStack stack) {
-        if (ItemsHelper.isModified(stack) && ((IItemMaxCount) stack.getItem()).getVanillaMaxCount() == 1) {
+        if (stack.getMaxCount() > 1 && stack.getItem().getMaxCount() == 1) { 
             stack = stack.copy();
             stack.setCount(1);
         }

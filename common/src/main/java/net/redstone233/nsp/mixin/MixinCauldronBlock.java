@@ -10,7 +10,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -36,7 +35,10 @@ public class MixinCauldronBlock {
                 if (!stack.getComponents().isEmpty()) {
                     itemStack.applyComponentsFrom(stack.getComponents());
                 }
-                ItemsHelper.insertNewItem(player, itemStack);
+                // Insert item logic here
+                if (!player.getInventory().insertStack(itemStack)) {
+                    player.dropItem(itemStack, false);
+                }
                 stack.decrement(1);
                 player.incrementStat(Stats.CLEAN_SHULKER_BOX);
                 LeveledCauldronBlock.decrementFluidLevel(state, world, pos);
@@ -49,11 +51,10 @@ public class MixinCauldronBlock {
     @Inject(method = "onUseWithItem", at=@At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"), cancellable = true)
     private void cleanStackedShulkerBox(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ItemActionResult> cir){
         ItemStack itemStack = player.getStackInHand(hand);
-        if (ItemsHelper.isModified(itemStack) && itemStack.getCount() > 1) {
+        if (itemStack.getMaxCount() > 1 && itemStack.getCount() > 1) {
             if(behaviorMap.map().get(itemStack.getItem()) == CauldronBehavior.CLEAN_SHULKER_BOX){
                 cir.setReturnValue(CLEAN_STACKED_SHULKER_BOX.interact(state, world, pos, player, hand, itemStack));
             }
         }
     }
 }
-

@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.MilkBucketItem;
 import net.minecraft.world.World;
-import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,11 +16,14 @@ public class MixinMilkBucketItem {
 
     @Inject(method = "finishUsing", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Lnet/minecraft/item/ItemStack;decrementUnlessCreative(ILnet/minecraft/entity/LivingEntity;)V"), cancellable = true)
     private void stackableMilkBucket(ItemStack stack, World world, LivingEntity user, CallbackInfoReturnable<ItemStack> cir) {
-        if (!stack.isEmpty() && ItemsHelper.isModified(stack) && stack.getCount() > 1) {
+        if (!stack.isEmpty() && stack.getMaxCount() > 1 && stack.getCount() > 1) {
             if (!world.isClient)
                 user.clearStatusEffects();
-            if (user instanceof PlayerEntity) {
-                ItemsHelper.insertNewItem((PlayerEntity) user, new ItemStack(Items.BUCKET));
+            if (user instanceof PlayerEntity player) {
+                // Insert bucket logic
+                if (!player.getInventory().insertStack(new ItemStack(Items.BUCKET))) {
+                    player.dropItem(new ItemStack(Items.BUCKET), false);
+                }
                 cir.setReturnValue(stack);
             }
         }

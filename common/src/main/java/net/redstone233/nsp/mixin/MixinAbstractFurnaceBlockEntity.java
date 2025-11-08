@@ -6,7 +6,6 @@ import net.minecraft.item.Items;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.redstone233.nsp.util.ItemsHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +18,7 @@ public class MixinAbstractFurnaceBlockEntity {
     private static void popBuckets(World world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo ci){
         ItemStack itemStack = (ItemStack)((AccessorFurnaceInventory)blockEntity).getInventory().get(1);
         // >= 1 because it is decreased by 1 before our code execution
-        if(ItemsHelper.isModified(itemStack) && itemStack.getCount() >= 1) {
+        if(itemStack.getCount() >= 1 && itemStack.getMaxCount() > 1) {
             if (itemStack.isOf(Items.LAVA_BUCKET)){
                 ItemScatterer.spawn(world, (double)pos.getX(), (double)pos.getY(), (double)pos.getZ(), new ItemStack(Items.BUCKET));
             }
