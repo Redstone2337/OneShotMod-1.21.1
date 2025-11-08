@@ -19,6 +19,10 @@ public record RenderPosition(int x, int y, int width) {
         // 原版垂直位置计算：槽位高度(16) - 文本高度(8) + 上边距(6) - 基线调整(1)
         int y = slotY + 16 - 8 + 6 - 1;
 
+        return new RenderPosition(x, y, textWidth);
+    }
+
+    public static RenderPosition forItemVanilla(int slotX, int slotY, int textWidth) {
         return new RenderPosition(slotX, slotY, textWidth);
     }
 

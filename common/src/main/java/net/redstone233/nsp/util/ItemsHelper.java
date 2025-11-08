@@ -1,212 +1,91 @@
 package net.redstone233.nsp.util;
 
-import com.mojang.logging.LogUtils;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.item.BlockItem;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.redstone233.nsp.config.ClientConfig;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.redstone233.nsp.OneShotMod;
-import net.redstone233.nsp.config.ClientConfig; // 添加导入
-import org.slf4j.Logger;
-
-import java.util.*;;
+import net.minecraft.nbt.NbtList;
 
 public class ItemsHelper {
-    // 移除硬编码的 ItemMaxCount，改为动态获取
-    private static ItemsHelper itemsHelper;
-    private static final Logger LOGGER = LogUtils.getLogger();
 
-    private ItemsHelper() {
+    public static boolean isModified(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+
+        // 使用配置系统中的最大堆叠数进行检查
+        int configMaxStack = ClientConfig.getMaxItemStackCount();
+        int currentCount = stack.getCount();
+
+        // 如果当前堆叠数超过原版限制但不超过配置限制，则认为被修改
+        return currentCount > stack.getMaxCount() && currentCount <= configMaxStack;
     }
 
-    public static ItemsHelper getItemsHelper() {
-        if (itemsHelper == null) {
-            itemsHelper = new ItemsHelper();
-        }
-        return itemsHelper;
-    }
+    public static void insertNewItem(PlayerEntity player, ItemStack stack) {
+        if (player == null || stack.isEmpty()) return;
 
-    // 动态获取最大堆叠数 - 修改为直接调用配置
-    public static int getItemMaxCount() {
-        try {
-            return ClientConfig.getMaxItemStackCount();
-        } catch (Exception e) {
-            LOGGER.warn("[All Stackable] Failed to get config, using default max count 99");
-            return 99; // 回退到原来的默认值
-        }
-    }
-
-    public void resetAll(boolean serverSide) {
-        for (Map.Entry<RegistryKey<Item>, Item> itemEntry : getItemSet()) {
-            Item item = itemEntry.getValue();
-            ((IItemMaxCount) item).oneShotMod_1_21_1$revert(); // 更新方法名
-        }
-        if (serverSide) LOGGER.info("[All Stackable] Reset all items");
-    }
-
-    public void resetItem(Item item) {
-        ((IItemMaxCount) item).oneShotMod_1_21_1$revert(); // 更新方法名
-        LOGGER.info("[All Stackable] Reset {}", Registries.ITEM.getId(item).toString());
-    }
-
-    public void setCountByConfig(Set<Map.Entry<String, Integer>> configSet, boolean serverSide) {
-        resetAll(serverSide);
-        int maxAllowed = getItemMaxCount();
-
-        for (Map.Entry<String, Integer> entry : configSet) {
-            Item item = Registries.ITEM.get(Identifier.of(entry.getKey()));
-            int size = Integer.min(entry.getValue(), maxAllowed);
-            if (serverSide)
-                LOGGER.info("[All Stackable] Set {} to {}", entry.getKey(), size);
-            else
-                LOGGER.info("[All Stackable] [Client] Set {} to {}", entry.getKey(), size);
-            ((IItemMaxCount) item).oneShotMod_1_21_1$setMaxCount(size); // 更新方法名
-        }
-    }
-
-    public int getDefaultCount(Item item) {
-        return ((IItemMaxCount) item).oneShotMod_1_21_1$getVanillaMaxCount(); // 更新方法名
-    }
-
-    public int getCurrentCount(Item item) {
-        return item.getMaxCount();
-    }
-
-    public boolean isVanilla(Item item) {
-        return getDefaultCount(item) == getCurrentCount(item);
-    }
-
-    public void setSingle(Item item, int count) {
-        int maxAllowed = getItemMaxCount();
-        int actualCount = Integer.min(count, maxAllowed);
-
-        ((IItemMaxCount) item).oneShotMod_1_21_1$setMaxCount(actualCount); // 更新方法名
-        OneShotMod.LOGGER.info("[All Stackable] Set {} to {}", Registries.ITEM.getId(item), actualCount);
-    }
-
-    public LinkedList<Item> getAllModifiedItems() {
-        LinkedList<Item> list = new LinkedList<>();
-        for (Map.Entry<RegistryKey<Item>, Item> itemEntry : getItemSet()) {
-            Item item = itemEntry.getValue();
-            if (getDefaultCount(item) != getCurrentCount(item) && !list.contains(item)) {
-                list.add(item);
+        // 尝试将物品插入玩家库存
+        if (!player.getInventory().insertStack(stack)) {
+            // 如果库存已满，在玩家位置掉落物品
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                serverPlayer.dropItem(stack, false);
             }
         }
-        return list;
     }
 
-    public int setMatchedItems(int originalSize, int newSize, String type) {
-        int maxAllowed = getItemMaxCount();
-        int actualNewSize = Integer.min(newSize, maxAllowed);
-
-        int counter = 0;
-        switch (type) {
-            case "vanilla":
-                for (Map.Entry<RegistryKey<Item>, Item> itemEntry : getItemSet()) {
-                    Item item = itemEntry.getValue();
-                    if (isVanilla(item) && getCurrentCount(item) == originalSize) {
-                        setSingle(item, actualNewSize);
-                        counter++;
-                    }
-                }
-                break;
-            case "modified":
-                for (Map.Entry<RegistryKey<Item>, Item> itemEntry : getItemSet()) {
-                    Item item = itemEntry.getValue();
-                    if (!isVanilla(item) && getCurrentCount(item) == originalSize) {
-                        setSingle(item, actualNewSize);
-                        counter++;
-                    }
-                }
-                break;
-            case "all":
-                for (Map.Entry<RegistryKey<Item>, Item> itemEntry : getItemSet()) {
-                    Item item = itemEntry.getValue();
-                    if (getCurrentCount(item) == originalSize) {
-                        setSingle(item, actualNewSize);
-                        counter++;
-                    }
-                }
-                break;
-        }
-
-        return counter;
-    }
-
-    public LinkedHashMap<String, Integer> getNewConfigMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
-        for (Map.Entry<RegistryKey<Item>, Item> itemEntry : getItemSet()) {
-            Item item = itemEntry.getValue();
-            String id = Registries.ITEM.getId(item).toString();
-            if (getDefaultCount(item) != getCurrentCount(item) && !map.containsKey(id)) {
-                map.put(id, item.getMaxCount());
-            }
-        }
-        return map;
-    }
-
-    private Set<Map.Entry<RegistryKey<Item>, Item>> getItemSet() {
-        return Registries.ITEM.getEntrySet();
-    }
-
-    // From nbt/Tag.java createTag()
-    public static final int TAG_END = 0;
-    public static final int TAG_BYTE = 1;
-    public static final int TAG_SHORT = 2;
-    public static final int TAG_INT = 3;
-    public static final int TAG_LONG = 4;
-    public static final int TAG_FLOAT = 5;
-    public static final int TAG_DOUBLE = 6;
-    public static final int TAG_BYTEARRAY = 7;
-    public static final int TAG_STRING = 8;
-    public static final int TAG_LIST = 9;
-    public static final int TAG_COMPOUND = 10;
-    public static final int TAG_INTARRAY = 11;
-    public static final int TAG_LONGARRAY = 12;
-
+    /**
+     * 检查潜影盒是否有物品 - 适配 Minecraft 1.21 Data Components 系统
+     */
     public static boolean shulkerBoxHasItems(ItemStack stack) {
-        ComponentMap tag = stack.getComponents();
-
-        if (tag == null || !tag.contains(DataComponentTypes.BLOCK_ENTITY_DATA))
-            return false;
-
-        NbtCompound bet = Objects.requireNonNull(tag.get(DataComponentTypes.BLOCK_ENTITY_DATA)).copyNbt();
-        return bet.contains("Items", TAG_LIST) && !bet.getList("Items", TAG_COMPOUND).isEmpty();
-    }
-
-    public static void insertNewItem(PlayerEntity player, Hand hand, ItemStack stack1, ItemStack stack2) {
-        if (stack1.isEmpty()) {
-            player.setStackInHand(hand, stack2);
-        } else if (!player.getInventory().insertStack(stack2)) {
-            player.dropItem(stack2, false);
-        }
-    }
-
-    public static void insertNewItem(PlayerEntity player, ItemStack stack2) {
-        if (!player.getInventory().insertStack(stack2)) {
-            player.dropItem(stack2, false);
-        }
-    }
-
-    // 修改 isModified 方法，使用配置值判断
-    public static boolean isModified(ItemStack s) {
-        if (s.isEmpty()) {
+        if (!(stack.getItem() instanceof BlockItem blockItem) ||
+                !(blockItem.getBlock() instanceof ShulkerBoxBlock)) {
             return false;
         }
-        Item i = s.getItem();
-        // 判断当前堆叠数是否超过原版限制
-        return s.getCount() > ((IItemMaxCount) i).oneShotMod_1_21_1$getVanillaMaxCount();
+
+        // 新的 Data Components 系统替代了旧的 NBT 系统
+        // 检查 BlockEntityData 组件
+        NbtComponent blockEntityData = stack.get(DataComponentTypes.BLOCK_ENTITY_DATA);
+        if (blockEntityData != null) {
+            NbtCompound nbt = blockEntityData.copyNbt();
+            if (nbt != null && nbt.contains("Items", 9)) {
+                NbtList items = nbt.getList("Items", 10);
+                return !items.isEmpty();
+            }
+        }
+
+        return false;
     }
 
-    // 添加配置重载支持
-    public static void onConfigReloaded() {
-        LOGGER.info("[All Stackable] Config reloaded, max stack count is now: {}", getItemMaxCount());
-        // 这里可以根据需要添加重新应用配置的逻辑
+    /**
+     * 获取配置的最大堆叠数
+     */
+    public static int getMaxStackCount() {
+        return ClientConfig.getMaxItemStackCount();
+    }
+
+    /**
+     * 检查物品是否可以堆叠到配置的最大值
+     */
+    public static boolean canStackToMax(ItemStack stack) {
+        return stack.getCount() < getMaxStackCount();
+    }
+
+    /**
+     * 安全地增加物品堆叠数，不超过配置的最大值
+     */
+    public static ItemStack safeIncrement(ItemStack stack, int amount) {
+        int newCount = Math.min(stack.getCount() + amount, getMaxStackCount());
+        stack.setCount(newCount);
+        return stack;
+    }
+
+    /**
+     * 检查物品是否达到配置的最大堆叠数
+     */
+    public static boolean isAtMaxStack(ItemStack stack) {
+        return stack.getCount() >= getMaxStackCount();
     }
 }

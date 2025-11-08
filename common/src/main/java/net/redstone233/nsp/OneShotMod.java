@@ -2,7 +2,6 @@ package net.redstone233.nsp;
 
 import net.redstone233.nsp.command.StackCommand;
 import net.redstone233.nsp.event.AttackEventHandler;
-import net.redstone233.nsp.util.ItemsHelper;
 import net.redstone233.nsp.util.StackSystemManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

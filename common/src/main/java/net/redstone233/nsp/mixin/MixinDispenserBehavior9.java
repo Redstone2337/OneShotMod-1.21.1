@@ -20,7 +20,7 @@ public class MixinDispenserBehavior9 {
         // Check if the item is modified and if there's any remaining item stack after the operation
         if (ItemsHelper.isModified(stack) && !remainingStack.isEmpty()) {
             // Attempt custom logic to stack the remaining item
-            boolean success = ((IDispenserBlockEntity) pointer.blockEntity()).tryInsertAndStackItem(remainingStack);
+            boolean success = ((IDispenserBlockEntity) pointer.blockEntity()).oneShotMod_1_21_1$tryInsertAndStackItem(remainingStack);
 
             // If custom stacking succeeds, cancel further execution and return an empty stack
             if (success) {

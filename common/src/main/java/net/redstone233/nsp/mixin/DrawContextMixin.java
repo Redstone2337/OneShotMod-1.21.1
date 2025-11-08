@@ -81,7 +81,7 @@ public class DrawContextMixin {
     @Unique
     private RenderPosition oneShotMod_1_21_1$calculateRenderPosition(TextRenderer textRenderer, String text, int x, int y) {
         int textWidth = textRenderer.getWidth(text);
-        return RenderPosition.forItemSlotExact(x, y, textWidth);
+        return RenderPosition.forItemVanilla(x, y, textWidth);
     }
 
     /**

@@ -14,7 +14,7 @@ public class MixinDispenserBlockEntity implements IDispenserBlockEntity {
 
 
     @Override
-    public boolean tryInsertAndStackItem(ItemStack itemStack) {
+    public boolean oneShotMod_1_21_1$tryInsertAndStackItem(ItemStack itemStack) {
         boolean inserted = false;
         for(int i = 0; i < this.inventory.size(); ++i) {
             ItemStack invStack = this.inventory.get(i);

@@ -23,19 +23,20 @@ public abstract class MixinItem implements IItemMaxCount {
     @Unique
     private int oneShotMod_1_21_1$vanillaMaxCount;
 
-    @Override
+    @Unique
     public int oneShotMod_1_21_1$getVanillaMaxCount() {
         return oneShotMod_1_21_1$vanillaMaxCount;
     }
 
-    @Override
+
+    @Unique
     public void oneShotMod_1_21_1$setVanillaMaxCount(int vanillaMaxCount) {
         this.oneShotMod_1_21_1$vanillaMaxCount = vanillaMaxCount;
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void setVanillaMaxCount(Item.Settings settings, CallbackInfo ci) {
-        oneShotMod_1_21_1$setVanillaMaxCount(this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.getItemMaxCount()));
+        oneShotMod_1_21_1$setVanillaMaxCount(this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.getMaxStackCount()));
     }
 
     @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
@@ -46,6 +47,6 @@ public abstract class MixinItem implements IItemMaxCount {
 
     @Redirect(method = "isEnchantable", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getMaxCount()I"))
     private int redirectGetMaxCount(ItemStack instance) {
-        return ((IItemMaxCount) instance.getItem()).oneShotMod_1_21_1$getVanillaMaxCount();
+        return ((IItemMaxCount) instance.getItem()).getVanillaMaxCount();
     }
 }

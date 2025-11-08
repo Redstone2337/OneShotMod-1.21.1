@@ -38,7 +38,7 @@ public class MixinDispenserBehavior8 {
             ItemStack newStack = stack.copy();
             newStack.decrement(1);
 //            if (((DispenserBlockEntity) pointer.getBlockEntity()).addToFirstFreeSlot(Items.BUCKET.getDefaultStack()) < 0) {
-            if (!((IDispenserBlockEntity) pointer.blockEntity()).tryInsertAndStackItem(Items.BUCKET.getDefaultStack())) {
+            if (!((IDispenserBlockEntity) pointer.blockEntity()).oneShotMod_1_21_1$tryInsertAndStackItem(Items.BUCKET.getDefaultStack())) {
                 this.fallbackBehavior.dispense(pointer, Items.BUCKET.getDefaultStack());
             }
 //            }

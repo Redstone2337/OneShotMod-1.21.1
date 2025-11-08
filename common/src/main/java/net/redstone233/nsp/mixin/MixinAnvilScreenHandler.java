@@ -62,7 +62,7 @@ public class MixinAnvilScreenHandler {
     **/
     @ModifyVariable(method = "updateResult", at = @At("STORE"), ordinal = 0)
     private ItemStack copyOne(ItemStack stack) {
-        if (ItemsHelper.isModified(stack) && ((IItemMaxCount) stack.getItem()).oneShotMod_1_21_1$getVanillaMaxCount() == 1) {
+        if (ItemsHelper.isModified(stack) && ((IItemMaxCount) stack.getItem()).getVanillaMaxCount() == 1) {
             stack = stack.copy();
             stack.setCount(1);
         }
