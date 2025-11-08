@@ -428,18 +428,7 @@ public class StackCommand {
         try {
             String systemStatus = StackSystemManager.getSystemStatus();
             boolean usingConfig = StackSystemManager.isUsingConfigSystem();
-            String syncStatus = StackSystemManager.getConfigSyncStatus();
-
-            Text message = Text.literal(
-                    "§6=== 堆叠系统信息 ===\n" +
-                            "§a" + systemStatus + "\n" +
-                            "§a配置同步: §e" + syncStatus + "\n" +
-                            "§a支持范围: §e1 - " + MAX_STACK_COUNT + "\n" +
-                            "§a配置来源: §e" + (usingConfig ? "主配置文件" : "独立配置文件") + "\n" +
-                            "§c注意: 此设置将影响所有原版物品，包括工具、武器和盔甲\n" +
-                            "§7使用 §e/stack force-update §7强制刷新系统\n" +
-                            "§7使用 §e/stack sync-config §7同步配置文件"
-            );
+            Text message = getMessage(systemStatus, usingConfig);
             context.getSource().sendFeedback(() -> message, false);
 
             return Command.SINGLE_SUCCESS;
@@ -449,6 +438,21 @@ public class StackCommand {
             OneShotMod.LOGGER.error("获取堆叠信息失败", e);
             return 0;
         }
+    }
+
+    private static @NotNull Text getMessage(String systemStatus, boolean usingConfig) {
+        String syncStatus = StackSystemManager.getConfigSyncStatus();
+
+        return Text.literal(
+                "§6=== 堆叠系统信息 ===\n" +
+                        "§a" + systemStatus + "\n" +
+                        "§a配置同步: §e" + syncStatus + "\n" +
+                        "§a支持范围: §e1 - " + MAX_STACK_COUNT + "\n" +
+                        "§a配置来源: §e" + (usingConfig ? "主配置文件" : "独立配置文件") + "\n" +
+                        "§c注意: 此设置将影响所有原版物品，包括工具、武器和盔甲\n" +
+                        "§7使用 §e/stack force-update §7强制刷新系统\n" +
+                        "§7使用 §e/stack sync-config §7同步配置文件"
+        );
     }
 
     private static int forceUpdateStackSystem(CommandContext<ServerCommandSource> context) {
