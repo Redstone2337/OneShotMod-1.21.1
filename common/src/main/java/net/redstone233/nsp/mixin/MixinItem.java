@@ -34,12 +34,12 @@ public abstract class MixinItem implements IItemMaxCount {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void setVanillaMaxCount(Item.Settings settings, CallbackInfo ci) {
-        oneShotMod_1_21_1$setVanillaMaxCount((Integer) this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.ItemMaxCount));
+        oneShotMod_1_21_1$setVanillaMaxCount(this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.getItemMaxCount()));
     }
 
     @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
     private void injectGetMaxCount(CallbackInfoReturnable<Integer> cir) {
-        cir.setReturnValue((Integer) this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.ItemMaxCount));
+        cir.setReturnValue(this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, ItemsHelper.getItemMaxCount()));
     }
 
     @Redirect(method = "isEnchantable", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getMaxCount()I"))
