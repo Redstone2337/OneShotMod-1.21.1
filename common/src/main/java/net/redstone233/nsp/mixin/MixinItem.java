@@ -51,4 +51,11 @@ public abstract class MixinItem {
         // Use vanilla max count for enchantability check
         return oneShotMod_1_21_1$vanillaMaxCount;
     }
+
+    @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
+    private void getActualMaxCount(CallbackInfoReturnable<Integer> cir) {
+        // 确保返回正确的最大堆叠数量
+        int configMaxCount = ClientConfig.getMaxItemStackCount();
+        cir.setReturnValue(configMaxCount);
+    }
 }
