@@ -31,7 +31,8 @@ public abstract class MixinItem {
     @Unique
     private void oneShotMod_1_21_1$applyConfigMaxCount() {
         int configMaxCount = ClientConfig.getMaxItemStackCount();
-        if (configMaxCount != 64) { // Only modify if different from default
+        // 确保配置值正确应用，不限制在99
+        if (configMaxCount != oneShotMod_1_21_1$vanillaMaxCount) {
             ComponentMap.Builder builder = ComponentMap.builder().addAll(this.components);
             builder.add(DataComponentTypes.MAX_STACK_SIZE, configMaxCount);
             this.components = builder.build();
@@ -40,7 +41,9 @@ public abstract class MixinItem {
 
     @Inject(method = "getMaxCount", at = @At("HEAD"), cancellable = true)
     private void injectGetMaxCount(CallbackInfoReturnable<Integer> cir) {
-        cir.setReturnValue((Integer) this.components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 64));
+        // 直接返回配置的最大堆叠数量
+        int configMaxCount = ClientConfig.getMaxItemStackCount();
+        cir.setReturnValue(configMaxCount);
     }
 
     @Redirect(method = "isEnchantable", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getMaxCount()I"))
